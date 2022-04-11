@@ -10,6 +10,19 @@ namespace Hsinpa.AI.Flocking
         public Vector3 position;
         public Vector3 velocity;
         public Vector3 acceleration;
+    }
+
+    public struct FlockEnvStruct
+    {
+        //Center and radius
+        public Vector3 centerWorldPos;
+        public float centerRadius;
+
+        //Movement
+        public float speed;
+        public float escape_multiplier;
+        
+        //Sensibility
         public float sense_range;
     }
 }

@@ -17,9 +17,22 @@ namespace Hsinpa.AI.Flocking
         [SerializeField, Range(0.1f, 20f)]
         private float Sensitivity;
 
+        [SerializeField, Range(0f, 10f)]
+        private float AgentSpeed;
+
+        [SerializeField, Range(0f, 10f)]
+        private float AgendEscapeValue;
+
         void Start()
         {
-            flockManager.Init(PondSize, SpawnCount, Sensitivity);
+            FlockEnvStruct flockEnvStruct = new FlockEnvStruct();
+            flockEnvStruct.speed = AgentSpeed;
+            flockEnvStruct.escape_multiplier = AgendEscapeValue;
+            flockEnvStruct.sense_range = Sensitivity;
+            flockEnvStruct.centerWorldPos = this.transform.position;
+            flockEnvStruct.centerRadius = PondSize.magnitude * 0.5f;
+
+            flockManager.Init(PondSize, SpawnCount, flockEnvStruct);
         }
 
     }

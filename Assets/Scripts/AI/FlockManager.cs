@@ -15,13 +15,16 @@ namespace Hsinpa.AI.Flocking
 
         private Vector2 _pondSize;
         private Vector3 _pondSize3D;
-        private float _sense_range;
+        FlockEnvStruct _flockEnvStruct;
+
         private int incrementalID = 0;
 
         #region Public API
-        public void Init(Vector2 pondSize, int spawnCount, float sense_range) {
+        public void Init(Vector2 pondSize, int spawnCount, FlockEnvStruct flockEnvStruct ) {
             this._pondSize = pondSize;
             this._pondSize3D = new Vector3(this._pondSize.x, 0.1f, this._pondSize.y);
+
+            _flockEnvStruct = flockEnvStruct;
 
             PreparePondStage(spawnCount);
         }
@@ -59,7 +62,7 @@ namespace Hsinpa.AI.Flocking
 
             var flockAgent = GameObject.Instantiate<FlockAgent>(_flockAgentPrefab, position, Quaternion.identity, this.transform);
 
-            flockAgent.SetUp(this.incrementalID, _sense_range, velocity);
+            flockAgent.SetUp(this.incrementalID, velocity, this._flockEnvStruct);
 
             this.incrementalID++;
 
