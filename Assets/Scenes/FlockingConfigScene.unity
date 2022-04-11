@@ -474,7 +474,7 @@ MonoBehaviour:
   flockManager: {fileID: 1291771116}
   PondSize: {x: 10, y: 8}
   SpawnCount: 100
-  Sensitivity: 5
+  Sensitivity: 2.5
   AgentSpeed: 2
   AgendEscapeValue: 1
 --- !u!1 &2057416078
