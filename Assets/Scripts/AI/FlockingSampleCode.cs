@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 namespace Hsinpa.AI.Flocking
 {
@@ -7,6 +8,9 @@ namespace Hsinpa.AI.Flocking
     {
         [SerializeField]
         private FlockManager flockManager;
+
+        [SerializeField]
+        private Transform debugColliderHolder;
 
         [SerializeField]
         private Vector2 PondSize;
@@ -33,6 +37,13 @@ namespace Hsinpa.AI.Flocking
             flockEnvStruct.centerRadius = PondSize.magnitude * 0.5f;
 
             flockManager.Init(PondSize, SpawnCount, flockEnvStruct);
+
+            FlockDebugCollider[] debugColliders = debugColliderHolder.GetComponentsInChildren<FlockDebugCollider>();
+            var colliders = debugColliders.Select(x => x.FlockColliderStruct).ToList();
+
+            foreach (var c in colliders) {
+                flockManager.RegisterCollider(c);
+            }
         }
 
     }

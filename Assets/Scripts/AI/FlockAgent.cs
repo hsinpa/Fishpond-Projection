@@ -12,6 +12,9 @@ namespace Hsinpa.AI.Flocking {
         private const float SEPERATION_WEIGHT = 3.5f;
         private const float PULLBACK_WEIGHT = 0.2f;
         private const float COHESION_WEIGHT = 2;
+        private const float COLLISION_WEIGHT = 100;
+
+        private const float COLLISION_RADIUS = 0.1f;
 
         #region Public API
         public void SetUp(int id, Vector3 velocity, FlockEnvStruct flockEnvStruct)
@@ -27,7 +30,7 @@ namespace Hsinpa.AI.Flocking {
             this._flockEnvStruct = flockEnvStruct;
         }
         
-        public void OnUpdate(List<FlockDataStruct> flockAgents)
+        public void OnUpdate(List<FlockDataStruct> flockAgents, List<FlockColliderStruct> colliders)
         {
             var filterFlocks = FilterSenseRange(flockAgents, this.flockDataStruct);
 
@@ -38,6 +41,7 @@ namespace Hsinpa.AI.Flocking {
                 steering_force += GetCohesiveForce(filterFlocks, flockDataStruct) * COHESION_WEIGHT;
                 steering_force += (GetSeperationForce(filterFlocks, flockDataStruct) * SEPERATION_WEIGHT);
                 steering_force += GetPullCenterForce() * PULLBACK_WEIGHT;
+                steering_force += GetCollisionAvoidForce(colliders) * COLLISION_WEIGHT;
             }
 
             this.flockDataStruct.acceleration = steering_force;
@@ -110,8 +114,32 @@ namespace Hsinpa.AI.Flocking {
             return centerOffset * (t * t);
         }
 
-        private Vector3 AverageOperation(List<FlockDataStruct> flockAgents, System.Func<FlockDataStruct, Vector3> ops) {
+        private Vector3 GetCollisionAvoidForce(List<FlockColliderStruct> colliders) {
+
+            var area = COLLISION_RADIUS * 2;
+
+            var averageForce = AverageOperation(colliders, collider =>
+            {
+                Vector3 force = new Vector3(0,0,0);
+                Vector3 expectedPosition = this.flockDataStruct.position + (Vector3.Normalize(this.flockDataStruct.velocity) * area);
+
+                var distance = Vector3.Distance(collider.position, expectedPosition);
+
+                if (distance < collider.radius + (COLLISION_RADIUS)) {
+                    force = this.flockDataStruct.position - collider.position;
+                    force /= distance;
+                }
+
+                return force;
+            });
+
+            return averageForce;
+        }
+
+        private Vector3 AverageOperation<T>(List<T> flockAgents, System.Func<T, Vector3> ops) {
             Vector3 average = new Vector3(0, 0, 0);
+
+            if (flockAgents.Count <= 0) return average;
 
             flockAgents.ForEach(x =>
             {

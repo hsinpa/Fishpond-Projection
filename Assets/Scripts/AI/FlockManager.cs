@@ -10,6 +10,7 @@ namespace Hsinpa.AI.Flocking
         [SerializeField]
         private FlockAgent _flockAgentPrefab;
 
+        private List<FlockColliderStruct> _colliders = new List<FlockColliderStruct>();
         private List<FlockAgent> _flockAgents = new List<FlockAgent>();
         public IReadOnlyCollection<FlockAgent> FlockAgents => this._flockAgents;
 
@@ -17,7 +18,8 @@ namespace Hsinpa.AI.Flocking
         private Vector3 _pondSize3D;
         FlockEnvStruct _flockEnvStruct;
 
-        private int incrementalID = 0;
+        private int flockIncrementalID = 0;
+        private int colliderIncrementalID = 0;
 
         #region Public API
         public void Init(Vector2 pondSize, int spawnCount, FlockEnvStruct flockEnvStruct ) {
@@ -27,6 +29,23 @@ namespace Hsinpa.AI.Flocking
             _flockEnvStruct = flockEnvStruct;
 
             PreparePondStage(spawnCount);
+        }
+
+        public void RegisterCollider(FlockColliderStruct collider) {
+            collider.id = colliderIncrementalID;
+
+            _colliders.Add(collider);
+
+            colliderIncrementalID++;
+        }
+
+        public void RemoveCollider(FlockColliderStruct collider) {
+            int l = _colliders.Count;
+
+            for (int i = l - 1; i >= 0; i--) {
+                if (_colliders[i].id == collider.id)
+                    _colliders.RemoveAt(i);
+            }
         }
         #endregion
 
@@ -62,9 +81,9 @@ namespace Hsinpa.AI.Flocking
 
             var flockAgent = GameObject.Instantiate<FlockAgent>(_flockAgentPrefab, position, Quaternion.identity, this.transform);
 
-            flockAgent.SetUp(this.incrementalID, velocity, this._flockEnvStruct);
+            flockAgent.SetUp(this.flockIncrementalID, velocity, this._flockEnvStruct);
 
-            this.incrementalID++;
+            this.flockIncrementalID++;
 
             return flockAgent;
         }
@@ -80,7 +99,7 @@ namespace Hsinpa.AI.Flocking
             int flockCount = _flockAgents.Count;
             var flockDataSets = _flockAgents.Select(x => x.flockDataStruct).ToList();
             for (int i = 0; i < flockCount; i++) {
-                _flockAgents[i].OnUpdate(flockDataSets);
+                _flockAgents[i].OnUpdate(flockDataSets, _colliders);
             }
         }
 

@@ -12,6 +12,13 @@ namespace Hsinpa.AI.Flocking
         public Vector3 acceleration;
     }
 
+    public struct FlockColliderStruct
+    {
+        public int id;
+        public Vector3 position;
+        public float radius;
+    }
+
     public struct FlockEnvStruct
     {
         //Center and radius
