@@ -4,45 +4,53 @@ using UnityEngine;
 using System.Linq;
 
 namespace Hsinpa.AI.Flocking {
-    public class FlockAgent : MonoBehaviour
+    public class FlockAgent
     {
         public FlockDataStruct flockDataStruct;
         private FlockEnvStruct _flockEnvStruct;
 
         private const float SEPERATION_WEIGHT = 3.5f;
-        private const float PULLBACK_WEIGHT = 0.2f;
+        private const float PULLBACK_WEIGHT = 0.5f;
         private const float COHESION_WEIGHT = 2;
         private const float COLLISION_WEIGHT = 100;
+        private const float RANDOM_WEIGHT = 10;
 
         private const float COLLISION_RADIUS = 0.1f;
+        private const float DELTA_TIME = 0.02f;
+
+        private float _seed;
 
         #region Public API
-        public void SetUp(int id, Vector3 velocity, FlockEnvStruct flockEnvStruct)
+        public FlockAgent(int id, Vector3 position, Vector3 velocity, FlockEnvStruct flockEnvStruct)
         {
             flockDataStruct = new FlockDataStruct()
             {
                 id = id,
                 velocity = velocity,
                 acceleration = new Vector3(),
-                position = transform.position
+                position = position,
             };
 
             this._flockEnvStruct = flockEnvStruct;
         }
         
-        public void OnUpdate(List<FlockDataStruct> flockAgents, List<FlockColliderStruct> colliders)
+        public void OnUpdate(List<FlockAgent> flockAgents, List<FlockColliderStruct> colliders)
         {
             var filterFlocks = FilterSenseRange(flockAgents, this.flockDataStruct);
+            this._seed = (this.flockDataStruct.id + FlockManager.TIME) * DELTA_TIME;
 
             Vector3 steering_force = new Vector3(0, 0, 0);
 
-            if (filterFlocks.Count > 0) {
+            if (filterFlocks.Count > 0)
+            {
                 steering_force += GetAlignmentForce(filterFlocks);
                 steering_force += GetCohesiveForce(filterFlocks, flockDataStruct) * COHESION_WEIGHT;
                 steering_force += (GetSeperationForce(filterFlocks, flockDataStruct) * SEPERATION_WEIGHT);
-                steering_force += GetPullCenterForce() * PULLBACK_WEIGHT;
-                steering_force += GetCollisionAvoidForce(colliders) * COLLISION_WEIGHT;
             }
+
+            steering_force += GetPullCenterForce() * PULLBACK_WEIGHT;
+            steering_force += GetCollisionAvoidForce(colliders) * COLLISION_WEIGHT;
+            steering_force += GetRandomForce() * RANDOM_WEIGHT;
 
             this.flockDataStruct.acceleration = steering_force;
 
@@ -51,17 +59,18 @@ namespace Hsinpa.AI.Flocking {
         #endregion
 
         #region Private API
-        private List<FlockDataStruct> FilterSenseRange(List<FlockDataStruct> flockAgents, FlockDataStruct selfDataStruct) {
+        private List<FlockDataStruct> FilterSenseRange(List<FlockAgent> flockAgents, FlockDataStruct selfDataStruct) {
             List<FlockDataStruct> filterAgents = new List<FlockDataStruct>();
 
             flockAgents.ForEach(x =>
             {
+                FlockDataStruct f = x.flockDataStruct;
                 if (
-                x.id != selfDataStruct.id &&
-                Vector3.Distance(x.position, selfDataStruct.position) < this._flockEnvStruct.sense_range) {
+                f.id != selfDataStruct.id &&
+                Vector3.Distance(f.position, selfDataStruct.position) < this._flockEnvStruct.sense_range) {
 
 
-                    filterAgents.Add(x);
+                    filterAgents.Add(f);
                 }
             });
 
@@ -114,6 +123,20 @@ namespace Hsinpa.AI.Flocking {
             return centerOffset * (t * t);
         }
 
+        private Vector3 GetRandomForce()
+        {
+            float sampleX = (Mathf.PerlinNoise(this.flockDataStruct.position.x * _seed, 0)) * 2 -1;
+            float sampleY = (Mathf.PerlinNoise(this.flockDataStruct.position.x * _seed * 0.5f, 0)) * 2 -1;
+
+            //Debug.Log($"SampleX {sampleX}, SampleY {sampleY}");
+
+            Vector3 randomForce = this.flockDataStruct.velocity;
+            randomForce.x += sampleX;
+            randomForce.z += sampleY;
+
+            return randomForce;
+        }
+
         private Vector3 GetCollisionAvoidForce(List<FlockColliderStruct> colliders) {
 
             var area = COLLISION_RADIUS * 2;
@@ -152,17 +175,20 @@ namespace Hsinpa.AI.Flocking {
         }
 
         private void ProcessMovement() {
-            flockDataStruct.velocity += flockDataStruct.acceleration * Time.deltaTime;
-            flockDataStruct.velocity = Vector3.Normalize(flockDataStruct.velocity) * this._flockEnvStruct.speed;
+            flockDataStruct.velocity += flockDataStruct.acceleration * DELTA_TIME;
 
-            flockDataStruct.position += flockDataStruct.velocity * Time.deltaTime;
+            float randomSpeed = 1 * (Mathf.PerlinNoise(this.flockDataStruct.position.x * _seed * 0.6f,
+                                                        this.flockDataStruct.position.z * _seed * 0.4f) * 2 - 1) ;
+            flockDataStruct.velocity = Vector3.Normalize(flockDataStruct.velocity) * (this._flockEnvStruct.speed + randomSpeed);
+
+            flockDataStruct.position += flockDataStruct.velocity * DELTA_TIME;
 
             //Position
-            this.transform.position = flockDataStruct.position;
+            //this.transform.position = flockDataStruct.position;
 
             //Rotation
             float angle = (Mathf.Atan2(flockDataStruct.velocity.z, flockDataStruct.velocity.x) * Mathf.Rad2Deg) - 90 ;
-            this.transform.rotation = Quaternion.Euler(90, 0, angle);
+            //this.transform.rotation = Quaternion.Euler(90, 0, angle);
         }
         #endregion
 

@@ -15,7 +15,7 @@ namespace Hsinpa.AI.Flocking
         [SerializeField]
         private Vector2 PondSize;
 
-        [SerializeField, Range(0, 100)]
+        [SerializeField, Range(0, 200)]
         private int SpawnCount;
 
         [SerializeField, Range(0.1f, 20f)]

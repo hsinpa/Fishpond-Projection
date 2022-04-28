@@ -2,16 +2,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using Hsinpa.Utility;
 
 namespace Hsinpa.AI.Flocking
 {
+    [RequireComponent(typeof(MultiThreadProcess))]
     public class FlockManager : MonoBehaviour
     {
         [SerializeField]
-        private FlockAgent _flockAgentPrefab;
+        private FlockGameObject _flockAgentPrefab;
 
         private List<FlockColliderStruct> _colliders = new List<FlockColliderStruct>();
         private List<FlockAgent> _flockAgents = new List<FlockAgent>();
+        private List<FlockGameObject> _flockGameObjs = new List<FlockGameObject>();
+        private MultiThreadProcess multiThreadProcess;
+
         public IReadOnlyCollection<FlockAgent> FlockAgents => this._flockAgents;
 
         private Vector2 _pondSize;
@@ -21,14 +26,21 @@ namespace Hsinpa.AI.Flocking
         private int flockIncrementalID = 0;
         private int colliderIncrementalID = 0;
 
+        public static float TIME;
+
         #region Public API
         public void Init(Vector2 pondSize, int spawnCount, FlockEnvStruct flockEnvStruct ) {
+            this.multiThreadProcess = gameObject.GetComponent<MultiThreadProcess>();
+
             this._pondSize = pondSize;
             this._pondSize3D = new Vector3(this._pondSize.x, 0.1f, this._pondSize.y);
 
             _flockEnvStruct = flockEnvStruct;
 
             PreparePondStage(spawnCount);
+
+            System.Threading.Thread sender = new System.Threading.Thread(ProcessCalculation);
+            sender.Start();
         }
 
         public void RegisterCollider(FlockColliderStruct collider) {
@@ -69,23 +81,26 @@ namespace Hsinpa.AI.Flocking
                 Vector3 velocity = new Vector3(
                     Random.Range(-1f, 1f), 0, Random.Range(-1f, 1f)
                 );
-                var flockAgent =  CreateFlockAgent(position, velocity);
 
+                velocity = velocity.normalized;
+
+                var flockObject = CreateFlockAgent(position);
+
+                var flockAgent = new FlockAgent(this.flockIncrementalID, position, velocity, this._flockEnvStruct);
+
+                flockObject.SetUp(flockAgent);
+
+                _flockGameObjs.Add(flockObject);
                 _flockAgents.Add(flockAgent);
             }
         }
 
-        private FlockAgent CreateFlockAgent(Vector3 position, Vector3 velocity) {
-
-            velocity = velocity.normalized;
-
-            var flockAgent = GameObject.Instantiate<FlockAgent>(_flockAgentPrefab, position, Quaternion.identity, this.transform);
-
-            flockAgent.SetUp(this.flockIncrementalID, velocity, this._flockEnvStruct);
+        private FlockGameObject CreateFlockAgent(Vector3 position) {
+            var flockObject = GameObject.Instantiate<FlockGameObject>(_flockAgentPrefab, position, Quaternion.identity, this.transform);
 
             this.flockIncrementalID++;
 
-            return flockAgent;
+            return flockObject;
         }
 
         #endregion
@@ -94,12 +109,25 @@ namespace Hsinpa.AI.Flocking
 
         private void Update()
         {
+            TIME = Time.time;
+
+            int flockCount = _flockGameObjs.Count;
+
+            for (int i = 0; i < flockCount; i++)
+            {
+                _flockGameObjs[i].UpdateTransform();
+            }
+
+            multiThreadProcess.Enqueue(ProcessCalculation);
+        }
+
+        private void ProcessCalculation() {
             if (_flockAgents == null) return;
 
             int flockCount = _flockAgents.Count;
-            var flockDataSets = _flockAgents.Select(x => x.flockDataStruct).ToList();
-            for (int i = 0; i < flockCount; i++) {
-                _flockAgents[i].OnUpdate(flockDataSets, _colliders);
+            for (int i = 0; i < flockCount; i++)
+            {
+                _flockAgents[i].OnUpdate(_flockAgents, _colliders);
             }
         }
 
