@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Hsinpa.Utility
 {
@@ -18,23 +19,24 @@ namespace Hsinpa.Utility
             threadTasks.Add(task);
         }
 
-        private async void Process()
+        private void Process()
         {
             if (!NextProcessFlag) return;
 
             NextProcessFlag = false;
 
-            await Task.Run(() =>
-            {
-                int queueCount = threadTasks.Count;
-                for (int i = 0; i < queueCount; i++)
-                {
-                    if (threadTasks[i] != null)
-                        threadTasks[i]();
-                }
+            ThreadPool.QueueUserWorkItem(ThreadProcess);
+        }
 
-                threadTasks.Clear();
-            });
+        private void ThreadProcess(System.Object stateInfo) {
+            int queueCount = threadTasks.Count;
+            for (int i = 0; i < queueCount; i++)
+            {
+                if (threadTasks[i] != null)
+                    threadTasks[i]();
+            }
+
+            threadTasks.Clear();
 
             NextProcessFlag = true;
         }

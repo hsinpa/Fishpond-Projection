@@ -9,16 +9,20 @@ namespace Hsinpa.AI.Flocking {
         public FlockDataStruct flockDataStruct;
         private FlockEnvStruct _flockEnvStruct;
 
+        private readonly static Vector3 ZeroVector = new Vector3(0, 0, 0);
+
+        private const float ALIGN_WEIGHT = 1.5f;
         private const float SEPERATION_WEIGHT = 3.5f;
         private const float PULLBACK_WEIGHT = 0.5f;
-        private const float COHESION_WEIGHT = 2;
+        private const float COHESION_WEIGHT = 2.5f;
         private const float COLLISION_WEIGHT = 100;
-        private const float RANDOM_WEIGHT = 10;
+        private const float RANDOM_WEIGHT = 1;
 
         private const float COLLISION_RADIUS = 0.1f;
         private const float DELTA_TIME = 0.02f;
 
         private float _seed;
+        System.Random _randomSystem;
 
         #region Public API
         public FlockAgent(int id, Vector3 position, Vector3 velocity, FlockEnvStruct flockEnvStruct)
@@ -32,18 +36,23 @@ namespace Hsinpa.AI.Flocking {
             };
 
             this._flockEnvStruct = flockEnvStruct;
+
+            this._randomSystem = new System.Random(id);
+
+            ResetWayPoint();
         }
         
         public void OnUpdate(List<FlockAgent> flockAgents, List<FlockColliderStruct> colliders)
         {
+            int index_offset = 10;
             var filterFlocks = FilterSenseRange(flockAgents, this.flockDataStruct);
-            this._seed = (this.flockDataStruct.id + FlockManager.TIME) * DELTA_TIME;
+            this._seed = (index_offset * this.flockDataStruct.id + FlockManager.TIME) * DELTA_TIME;
 
             Vector3 steering_force = new Vector3(0, 0, 0);
 
             if (filterFlocks.Count > 0)
             {
-                steering_force += GetAlignmentForce(filterFlocks);
+                steering_force += GetAlignmentForce(filterFlocks) * ALIGN_WEIGHT;
                 steering_force += GetCohesiveForce(filterFlocks, flockDataStruct) * COHESION_WEIGHT;
                 steering_force += (GetSeperationForce(filterFlocks, flockDataStruct) * SEPERATION_WEIGHT);
             }
@@ -115,7 +124,7 @@ namespace Hsinpa.AI.Flocking {
             float t = centerOffset.magnitude / this._flockEnvStruct.centerRadius;
 
             //If we are within specfic range, then no effect at all
-            if (t < 0.9f)
+            if (t < 0.8f)
             {
                 return new Vector3(0, 0, 0);
             }
@@ -125,15 +134,25 @@ namespace Hsinpa.AI.Flocking {
 
         private Vector3 GetRandomForce()
         {
-            float sampleX = (Mathf.PerlinNoise(this.flockDataStruct.position.x * _seed, 0)) * 2 -1;
-            float sampleY = (Mathf.PerlinNoise(this.flockDataStruct.position.x * _seed * 0.5f, 0)) * 2 -1;
+            Vector3 centerOffset = (this._flockEnvStruct.waypoint - this.flockDataStruct.position);
+            float centerDist = (this._flockEnvStruct.waypoint - this.flockDataStruct.position).magnitude;
 
+            float sampleX = (Mathf.PerlinNoise(_seed, 0)) * 2 - 1;
+            float sampleY = (Mathf.PerlinNoise(0, _seed)) * 2 - 1;
             //Debug.Log($"SampleX {sampleX}, SampleY {sampleY}");
 
+            //Object are more likely to gather at center
             Vector3 randomForce = this.flockDataStruct.velocity;
-            randomForce.x += sampleX;
-            randomForce.z += sampleY;
+            //randomForce.x += sampleX;
+            //randomForce.z += sampleY;
 
+            randomForce += (centerOffset.normalized * 0.1f);
+            //Debug.Log(centerDist);
+            if (centerDist < 0.2f) {
+                ResetWayPoint();
+            }
+
+            randomForce.Normalize();
             return randomForce;
         }
 
@@ -156,6 +175,9 @@ namespace Hsinpa.AI.Flocking {
                 return force;
             });
 
+            if (averageForce.magnitude > 0.1f)
+                ResetWayPoint();
+
             return averageForce;
         }
 
@@ -174,20 +196,42 @@ namespace Hsinpa.AI.Flocking {
             return average;
         }
 
-        private void ProcessMovement() {
-            flockDataStruct.velocity += flockDataStruct.acceleration * DELTA_TIME;
+        private Vector3 ResetWayPoint() {
 
-            float randomSpeed = 1 * (Mathf.PerlinNoise(this.flockDataStruct.position.x * _seed * 0.6f,
-                                                        this.flockDataStruct.position.z * _seed * 0.4f) * 2 - 1) ;
-            flockDataStruct.velocity = Vector3.Normalize(flockDataStruct.velocity) * (this._flockEnvStruct.speed + randomSpeed);
+            if (FlockManager.TIME - this._flockEnvStruct.waypoint_last_spawn_time > this._flockEnvStruct.waypoint_spawn_time) 
+                return this._flockEnvStruct.waypoint;
+
+            float size = (this._flockEnvStruct.centerRadius * 0.8f);
+            float random_offset_x = (_randomSystem.Next(-100, 100) * 0.01f) * size;
+            float random_offset_y = (_randomSystem.Next(-100, 100) * 0.01f) * size;
+
+            //float random_y = Random.Range(this._flockEnvStruct.centerWorldPos.z - size, this._flockEnvStruct.centerWorldPos.z + size);
+
+            this._flockEnvStruct.waypoint = new Vector3(this._flockEnvStruct.centerWorldPos.x + random_offset_x, 0, this._flockEnvStruct.centerWorldPos.z + random_offset_y);
+
+            this._flockEnvStruct.waypoint_last_spawn_time = FlockManager.TIME;
+
+            return this._flockEnvStruct.waypoint;
+        }
+
+        private void ProcessMovement() {
+            float decay = 0.95f;
+            flockDataStruct.velocity *= decay;
+
+            Vector3 velocity = flockDataStruct.velocity + (flockDataStruct.acceleration * DELTA_TIME);
+
+            float t = (Mathf.PerlinNoise( _seed * 10, _seed ));
+            float speed = Mathf.Lerp(this._flockEnvStruct.min_speed, this._flockEnvStruct.max_speed, t);
+
+            flockDataStruct.velocity = Vector3.ClampMagnitude(velocity, speed);
 
             flockDataStruct.position += flockDataStruct.velocity * DELTA_TIME;
-
+            
             //Position
             //this.transform.position = flockDataStruct.position;
 
             //Rotation
-            float angle = (Mathf.Atan2(flockDataStruct.velocity.z, flockDataStruct.velocity.x) * Mathf.Rad2Deg) - 90 ;
+            //float angle = (Mathf.Atan2(flockDataStruct.velocity.z, flockDataStruct.velocity.x) * Mathf.Rad2Deg) - 90 ;
             //this.transform.rotation = Quaternion.Euler(90, 0, angle);
         }
         #endregion

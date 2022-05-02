@@ -365,5 +365,10 @@ namespace Hsinpa.Utility
 				 operation(l);
 			}
 		}
+
+		public static float Distance2D(float x, float y)
+        {
+			return Mathf.Sqrt((x * x) + (y * y));
+        }
 	}
 }

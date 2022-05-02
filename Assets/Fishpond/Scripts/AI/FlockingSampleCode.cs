@@ -21,8 +21,11 @@ namespace Hsinpa.AI.Flocking
         [SerializeField, Range(0.1f, 20f)]
         private float Sensitivity;
 
-        [SerializeField, Range(0f, 10f)]
-        private float AgentSpeed;
+        [SerializeField, Range(0f, 5f)]
+        private float AgentMaxSpeed;
+
+        [SerializeField, Range(0f, 5f)]
+        private float AgentMinSpeed;
 
         [SerializeField, Range(0f, 10f)]
         private float AgendEscapeValue;
@@ -30,7 +33,10 @@ namespace Hsinpa.AI.Flocking
         void Start()
         {
             FlockEnvStruct flockEnvStruct = new FlockEnvStruct();
-            flockEnvStruct.speed = AgentSpeed;
+            flockEnvStruct.max_speed = AgentMaxSpeed;
+            flockEnvStruct.min_speed = AgentMinSpeed;
+            flockEnvStruct.waypoint_spawn_time = 0.5f;
+
             flockEnvStruct.escape_multiplier = AgendEscapeValue;
             flockEnvStruct.sense_range = Sensitivity;
             flockEnvStruct.centerWorldPos = this.transform.position;
@@ -39,6 +45,7 @@ namespace Hsinpa.AI.Flocking
             flockManager.Init(PondSize, SpawnCount, flockEnvStruct);
 
             FlockDebugCollider[] debugColliders = debugColliderHolder.GetComponentsInChildren<FlockDebugCollider>();
+            Debug.Log(debugColliders.Length);
             var colliders = debugColliders.Select(x => x.FlockColliderStruct).ToList();
 
             foreach (var c in colliders) {
