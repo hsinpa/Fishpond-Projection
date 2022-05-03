@@ -64,8 +64,8 @@ namespace Hsinpa.Realsense {
 
             Debug.Log("OnTexture width " + outputWidth +", " + outputHeight);
 
-            if (_segmentationAlgorithm != null) 
-                _segmentationAlgorithm = new SegmentationAlgorithm(threshold_area : 1, width: outputWidth, height: outputHeight);
+            if (_segmentationAlgorithm == null) 
+                _segmentationAlgorithm = new SegmentationAlgorithm(threshold_area : 150, width: outputWidth, height: outputHeight);
 
             if (grayDepthMapTexture == null)
                 grayDepthMapTexture = TextureUtility.GetRenderTexture(p_texture.width, p_texture.height, 16, RenderTextureFormat.R16);
@@ -76,9 +76,8 @@ namespace Hsinpa.Realsense {
             if (imageProcessB == null)
                 imageProcessB = TextureUtility.GetRenderTexture(p_texture.width, p_texture.height, 8, RenderTextureFormat.ARGB32);
 
-            if (filterTexture == null) {
+            if (filterTexture == null)
                 filterTexture = TextureUtility.GetRenderTexture(outputWidth, outputHeight, 8, RenderTextureFormat.ARGB32);
-            }
 
             if (_imgProcessingTex == null)
                 _imgProcessingTex = new Texture2D(outputWidth, outputHeight, TextureFormat.RGB24, false);
@@ -98,9 +97,9 @@ namespace Hsinpa.Realsense {
 
             Graphics.Blit(grayDepthMapTexture, imageProcessA, customizeMat, 0); // Guassian
             Graphics.Blit(imageProcessA, imageProcessB, customizeMat, 2); // Filter
-            Graphics.Blit(imageProcessB, imageProcessA, customizeMat, 1); // Erode
+            Graphics.Blit(imageProcessB, filterTexture, customizeMat, 1); // Erode
 
-            Graphics.Blit(imageProcessA, filterTexture, customizeMat, 1); // Erode
+            //Graphics.Blit(imageProcessA, filterTexture, customizeMat, 1); // Erode
 
             ExecEdgeProcessing();
         }
@@ -128,8 +127,11 @@ namespace Hsinpa.Realsense {
             _imgProcessingTex.LoadRawTextureData(request.GetData<uint>());
             _imgProcessingTex.Apply();
 
-            if (_segmentationAlgorithm != null)
-                _segmentationAlgorithm.FindAreaStruct(_imgProcessingTex.GetPixels());
+            if (_segmentationAlgorithm != null) {
+                var areas = _segmentationAlgorithm.FindAreaStruct(_imgProcessingTex.GetPixels());
+
+                Debug.Log("Segmentation " + areas.Count);
+            }
 
             textureCopyFlag = true;
         }
