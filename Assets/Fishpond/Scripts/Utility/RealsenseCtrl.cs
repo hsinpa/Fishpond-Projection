@@ -37,7 +37,7 @@ namespace Hsinpa.Realsense {
         private RenderTexture filterTexture;
 
         private Texture2D _imgProcessingTex;
-        private FloodfillAlgorithm _floodfillAlgorithm;
+        private SegmentationAlgorithm _segmentationAlgorithm;
 
         private float aspectRatio = 0;
         private bool textureCopyFlag = true;
@@ -57,12 +57,6 @@ namespace Hsinpa.Realsense {
                 OnTexture(value);
             }
         }
-
-        private void Start()
-        {
-            _floodfillAlgorithm = new FloodfillAlgorithm(threshold_area : 1);
-        }
-
         private void OnTexture(Texture p_texture) {
             aspectRatio = p_texture.height / (float)p_texture.width;
             int outputWidth = outputTexSize;
@@ -70,6 +64,8 @@ namespace Hsinpa.Realsense {
 
             Debug.Log("OnTexture width " + outputWidth +", " + outputHeight);
 
+            if (_segmentationAlgorithm != null) 
+                _segmentationAlgorithm = new SegmentationAlgorithm(threshold_area : 1, width: outputWidth, height: outputHeight);
 
             if (grayDepthMapTexture == null)
                 grayDepthMapTexture = TextureUtility.GetRenderTexture(p_texture.width, p_texture.height, 16, RenderTextureFormat.R16);
@@ -86,7 +82,6 @@ namespace Hsinpa.Realsense {
 
             if (_imgProcessingTex == null)
                 _imgProcessingTex = new Texture2D(outputWidth, outputHeight, TextureFormat.RGB24, false);
-
 
             if (debugTexture_a != null)
                 debugTexture_a.texture = filterTexture;
@@ -133,7 +128,8 @@ namespace Hsinpa.Realsense {
             _imgProcessingTex.LoadRawTextureData(request.GetData<uint>());
             _imgProcessingTex.Apply();
 
-            _floodfillAlgorithm.FindAreaStruct(_imgProcessingTex.GetPixels(), _imgProcessingTex.width, _imgProcessingTex.height);
+            if (_segmentationAlgorithm != null)
+                _segmentationAlgorithm.FindAreaStruct(_imgProcessingTex.GetPixels());
 
             textureCopyFlag = true;
         }
