@@ -32,7 +32,7 @@ namespace Hsinpa.Utility.Algorithm {
             this._pixelStructArray = new PixelStruct[width * height];
         }
 
-        public List<AreaStruct>  FindAreaStruct(Color[] colors) {
+        public List<GeneralDataStructure.AreaStruct>  FindAreaStruct(Color[] colors) {
             Dispose();
 
             for (int x = 0; x < this._width; x++) {
@@ -141,12 +141,12 @@ namespace Hsinpa.Utility.Algorithm {
             pixelLookupTable.Remove(original_segment_id);
         }
 
-        private List<AreaStruct> FilterAreaStruct(Dictionary<int, List<PixelStruct>> pixelLookupTable, float area_threshold) {
-            List<AreaStruct> areaStructs = new List<AreaStruct>();
+        private List<GeneralDataStructure.AreaStruct> FilterAreaStruct(Dictionary<int, List<PixelStruct>> pixelLookupTable, float area_threshold) {
+            List<GeneralDataStructure.AreaStruct> areaStructs = new List<GeneralDataStructure.AreaStruct>();
             //Debug.Log("pixelLookupTable length " + pixelLookupTable.Count);
 
             foreach (var pixelKeyPair in pixelLookupTable) {
-                AreaStruct areaStruct = new AreaStruct();
+                GeneralDataStructure.AreaStruct areaStruct = new GeneralDataStructure.AreaStruct();
                 areaStruct.id = pixelKeyPair.Key;
 
                 if (pixelKeyPair.Value == null || pixelKeyPair.Value.Count <= 0) continue;
@@ -203,15 +203,6 @@ namespace Hsinpa.Utility.Algorithm {
             public int y;
 
             public bool Valid => unique_id > 0;
-        }
-
-        public struct AreaStruct {
-            public float x;
-            public float y;
-            public float width;
-            public float height;
-            public int id;
-            public float area => width * height;
         }
 
     }
