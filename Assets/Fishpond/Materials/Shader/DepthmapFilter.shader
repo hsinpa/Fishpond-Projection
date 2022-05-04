@@ -70,7 +70,7 @@ Shader "Hsinpa/DepthmapFilter"
             ENDCG
         }
 
-                    //Erosion
+        //Erosion
         Pass
         {
             CGPROGRAM

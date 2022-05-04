@@ -15,6 +15,9 @@ namespace Hsinpa.Realsense {
         private UnityEngine.UI.RawImage debugTexture_b;
 
         [SerializeField]
+        private UnityEngine.UI.RawImage colorTexture_canvas;
+
+        [SerializeField]
         private MultiThreadProcess multiThreadProcess;
 
         [SerializeField, Range(0, 1)]
@@ -29,7 +32,14 @@ namespace Hsinpa.Realsense {
         [SerializeField]
         private Material customizeMat;
 
+        [SerializeField]
+        private Material areaDebugMat;
+
+        [SerializeField]
+        private bool debugAreaFlag;
+
         private Texture rawDepthMapTexture;
+        private Texture rawColorTexture;
 
         private RenderTexture imageProcessA;
         private RenderTexture imageProcessB;
@@ -42,7 +52,7 @@ namespace Hsinpa.Realsense {
         private float aspectRatio = 0;
         private bool textureCopyFlag = true;
 
-        public Texture texture
+        public Texture depth_texture
         {
             get
             {
@@ -57,15 +67,32 @@ namespace Hsinpa.Realsense {
                 OnTexture(value);
             }
         }
+
+        public Texture color_texture
+        {
+            get
+            {
+                return rawColorTexture;
+            }
+            set
+            {
+                if (rawColorTexture == value)
+                    return;
+
+                rawColorTexture = value;
+                colorTexture_canvas.texture = rawColorTexture;
+            }
+        }
+
         private void OnTexture(Texture p_texture) {
             aspectRatio = p_texture.height / (float)p_texture.width;
             int outputWidth = outputTexSize;
             int outputHeight = Mathf.FloorToInt(aspectRatio * outputTexSize);
 
-            Debug.Log("OnTexture width " + outputWidth +", " + outputHeight);
+            Debug.Log("OnTexture width " + outputWidth + ", " + outputHeight);
 
-            if (_segmentationAlgorithm == null) 
-                _segmentationAlgorithm = new SegmentationAlgorithm(threshold_area : 150, width: outputWidth, height: outputHeight);
+            if (_segmentationAlgorithm == null)
+                _segmentationAlgorithm = new SegmentationAlgorithm(threshold_area: 100, width: outputWidth, height: outputHeight);
 
             if (grayDepthMapTexture == null)
                 grayDepthMapTexture = TextureUtility.GetRenderTexture(p_texture.width, p_texture.height, 16, RenderTextureFormat.R16);
@@ -128,12 +155,42 @@ namespace Hsinpa.Realsense {
             _imgProcessingTex.Apply();
 
             if (_segmentationAlgorithm != null) {
-                var areas = _segmentationAlgorithm.FindAreaStruct(_imgProcessingTex.GetPixels());
-
-                Debug.Log("Segmentation " + areas.Count);
+                //var areas = _segmentationAlgorithm.FindAreaStruct(_imgProcessingTex.GetPixels());
+                
+                //if (debugAreaFlag)
+                //    DrawAreaHint(areas);
             }
 
             textureCopyFlag = true;
+        }
+
+        private void DrawAreaHint(List<GeneralDataStructure.AreaStruct> areaStructs) {
+            //Debug.Log("Segmentation " + areaStructs.Count);
+
+            foreach (GeneralDataStructure.AreaStruct areaStruct in areaStructs) {
+
+                int radiusX = Mathf.RoundToInt(areaStruct.width * 0.5f);
+                int radiusY = Mathf.RoundToInt(areaStruct.height * 0.5f);
+
+                for (int x = -radiusX; x < radiusX; x++) {
+                    //Up
+                    _imgProcessingTex.SetPixel(areaStruct.x + x, areaStruct.y + radiusY, Color.blue);
+
+                    //Down
+                    _imgProcessingTex.SetPixel(areaStruct.x + x, areaStruct.y - radiusY, Color.blue);
+                }
+
+                for (int y = -radiusY; y < radiusY; y++)
+                {
+                    //Left
+                    _imgProcessingTex.SetPixel(areaStruct.x - radiusX, areaStruct.y + y, Color.blue);
+
+                    //Right
+                    _imgProcessingTex.SetPixel(areaStruct.x + radiusX, areaStruct.y + y, Color.blue);
+                }
+            }
+
+            _imgProcessingTex.Apply();
         }
     }
 }

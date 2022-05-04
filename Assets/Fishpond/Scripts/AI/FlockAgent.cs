@@ -13,10 +13,10 @@ namespace Hsinpa.AI.Flocking {
 
         private const float ALIGN_WEIGHT = 1.5f;
         private const float SEPERATION_WEIGHT = 3.5f;
-        private const float PULLBACK_WEIGHT = 0.5f;
+        private const float PULLBACK_WEIGHT = 0.2f;
         private const float COHESION_WEIGHT = 2.5f;
         private const float COLLISION_WEIGHT = 100;
-        private const float RANDOM_WEIGHT = 1;
+        private const float RANDOM_WEIGHT = 0.5f;
 
         private const float COLLISION_RADIUS = 0.1f;
         private const float DELTA_TIME = 0.02f;
@@ -148,7 +148,7 @@ namespace Hsinpa.AI.Flocking {
 
             randomForce += (centerOffset.normalized * 0.1f);
             //Debug.Log(centerDist);
-            if (centerDist < 0.2f) {
+            if (centerDist < 1f) {
                 ResetWayPoint();
             }
 

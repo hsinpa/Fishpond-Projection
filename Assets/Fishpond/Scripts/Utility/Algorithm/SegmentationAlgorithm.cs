@@ -174,8 +174,8 @@ namespace Hsinpa.Utility.Algorithm {
 
                 areaStruct.width = right - left;
                 areaStruct.height = top - bottom;
-                areaStruct.x = center_x / pixelKeyPair.Value.Count;
-                areaStruct.y = center_y / pixelKeyPair.Value.Count;
+                areaStruct.x = Mathf.FloorToInt(center_x / pixelKeyPair.Value.Count);
+                areaStruct.y = Mathf.FloorToInt(center_y / pixelKeyPair.Value.Count);
 
                 //Debug.Log(areaStruct.id + ", left " + left + ", right " + right +", top " + top +", bottom "  + bottom);
                 //Debug.Log("Area " + areaStruct.area);

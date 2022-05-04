@@ -4,6 +4,7 @@ Shader "Hsinpa/AreaDebugger"
     {
         _MainTex ("Texture", 2D) = "white" {}
         
+        _Lint("Lint", Color) = (1, 1, 1, 1)
         _BoxPosition("Position", Vector) = (0, 0, 0, 0)
         _Width("Width", Float) = 0
         _Height("Height", Float) = 0
@@ -36,6 +37,11 @@ Shader "Hsinpa/AreaDebugger"
             sampler2D _MainTex;
             float4 _MainTex_ST;
 
+            float2 _BoxPosition;
+            float _Width;
+            float _Height;
+            fixed4 _Lint;
+
             v2f vert (appdata v)
             {
                 v2f o;
@@ -46,7 +52,15 @@ Shader "Hsinpa/AreaDebugger"
             fixed4 frag (v2f i) : SV_Target
             {
                 fixed4 col = tex2D(_MainTex, i.uv);
-                return col;
+
+                fixed2 bl = step(fixed2(0.1, 0.1), i.uv);       // bottom-left
+                fixed2 tr = step(fixed2(0.1, 0.1), 1.0 - i.uv);   // top-right
+
+                fixed borderCol = bl.x * bl.y * tr.x * tr.y;
+
+                fixed3 color = fixed3(borderCol, borderCol, borderCol);
+
+                return fixed4(color, 1.0);
             }
             ENDCG
         }

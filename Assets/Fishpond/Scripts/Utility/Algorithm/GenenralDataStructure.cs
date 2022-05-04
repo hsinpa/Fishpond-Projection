@@ -6,14 +6,13 @@ using UnityEngine;
 namespace Hsinpa.Utility.Algorithm {
     public class GeneralDataStructure {
 
-
         public struct AreaStruct {
-            public float x;
-            public float y;
-            public float width;
-            public float height;
+            public int x;
+            public int y;
+            public int width;
+            public int height;
             public int id;
-            public float area => width * height;
+            public int area => width * height;
         }
     }
 }
