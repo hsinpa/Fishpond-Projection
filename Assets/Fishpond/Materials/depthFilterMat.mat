@@ -104,7 +104,7 @@ Material:
     - _SrcBlend: 1
     - _Surface: 0
     - _Threshold: 0.082
-    - _Threshold_Max: 0.511
+    - _Threshold_Max: 0.5
     - _Threshold_Min: 0.2
     - _WorkflowMode: 1
     - _ZWrite: 1

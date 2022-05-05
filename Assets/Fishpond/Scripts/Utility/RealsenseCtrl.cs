@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using Hsinpa.Utility.Algorithm;
 using Hsinpa.Utility;
+using Intel.RealSense;
 
 namespace Hsinpa.Realsense {
     public class RealsenseCtrl : MonoBehaviour
@@ -36,6 +37,9 @@ namespace Hsinpa.Realsense {
         private Material areaDebugMat;
 
         [SerializeField]
+        private ProjectorSizeCorrector projectorSizeCorrector;
+
+        [SerializeField]
         private bool debugAreaFlag;
 
         private Texture rawDepthMapTexture;
@@ -44,12 +48,13 @@ namespace Hsinpa.Realsense {
         private RenderTexture imageProcessA;
         private RenderTexture imageProcessB;
         private RenderTexture grayDepthMapTexture;
+        private RenderTexture colorMapTexture;
         private RenderTexture filterTexture;
 
-        private Texture2D _imgProcessingTex;
+        private Texture2D _depth2DProcessingTex;
+        private Texture2D _color2DProcessingTex;
         private SegmentationAlgorithm _segmentationAlgorithm;
 
-        private float aspectRatio = 0;
         private bool textureCopyFlag = true;
 
         public Texture depth_texture
@@ -64,7 +69,7 @@ namespace Hsinpa.Realsense {
                     return;
 
                 rawDepthMapTexture = value;
-                OnTexture(value);
+                OnTexture(Stream.Depth, value);
             }
         }
 
@@ -80,40 +85,18 @@ namespace Hsinpa.Realsense {
                     return;
 
                 rawColorTexture = value;
-                colorTexture_canvas.texture = rawColorTexture;
+                OnTexture(Stream.Color, value);
             }
         }
 
-        private void OnTexture(Texture p_texture) {
-            aspectRatio = p_texture.height / (float)p_texture.width;
-            int outputWidth = outputTexSize;
-            int outputHeight = Mathf.FloorToInt(aspectRatio * outputTexSize);
+        private void OnTexture(Stream stream_type, Texture p_texture) {
+            if (stream_type == Stream.Depth) {
+                SetDepthmapTexture(p_texture);
+            }
 
-            Debug.Log("OnTexture width " + outputWidth + ", " + outputHeight);
-
-            if (_segmentationAlgorithm == null)
-                _segmentationAlgorithm = new SegmentationAlgorithm(threshold_area: 100, width: outputWidth, height: outputHeight);
-
-            if (grayDepthMapTexture == null)
-                grayDepthMapTexture = TextureUtility.GetRenderTexture(p_texture.width, p_texture.height, 16, RenderTextureFormat.R16);
-
-            if (imageProcessA == null)
-                imageProcessA = TextureUtility.GetRenderTexture(p_texture.width, p_texture.height, 8, RenderTextureFormat.ARGB32);
-
-            if (imageProcessB == null)
-                imageProcessB = TextureUtility.GetRenderTexture(p_texture.width, p_texture.height, 8, RenderTextureFormat.ARGB32);
-
-            if (filterTexture == null)
-                filterTexture = TextureUtility.GetRenderTexture(outputWidth, outputHeight, 8, RenderTextureFormat.ARGB32);
-
-            if (_imgProcessingTex == null)
-                _imgProcessingTex = new Texture2D(outputWidth, outputHeight, TextureFormat.RGB24, false);
-
-            if (debugTexture_a != null)
-                debugTexture_a.texture = filterTexture;
-
-            if (debugTexture_b != null)
-                debugTexture_b.texture = _imgProcessingTex;
+            if (stream_type == Stream.Color) {
+                SetColorTexture(p_texture);
+            }
         }
 
         private void Update()
@@ -149,10 +132,10 @@ namespace Hsinpa.Realsense {
                 return;
             }
 
-            if (_imgProcessingTex == null) return;
+            if (_depth2DProcessingTex == null) return;
 
-            _imgProcessingTex.LoadRawTextureData(request.GetData<uint>());
-            _imgProcessingTex.Apply();
+            _depth2DProcessingTex.LoadRawTextureData(request.GetData<uint>());
+            _depth2DProcessingTex.Apply();
 
             if (_segmentationAlgorithm != null) {
                 //var areas = _segmentationAlgorithm.FindAreaStruct(_imgProcessingTex.GetPixels());
@@ -162,6 +145,63 @@ namespace Hsinpa.Realsense {
             }
 
             textureCopyFlag = true;
+        }
+
+        private void SetDepthmapTexture(Texture p_texture) {
+            float aspectRatio = p_texture.height / (float)p_texture.width;
+            int outputWidth = outputTexSize;
+            int outputHeight = Mathf.FloorToInt(aspectRatio * outputTexSize);
+
+            Debug.Log("OnTexture width " + outputWidth + ", " + outputHeight);
+
+            if (_segmentationAlgorithm == null)
+                _segmentationAlgorithm = new SegmentationAlgorithm(threshold_area: 100, width: outputWidth, height: outputHeight);
+
+            if (grayDepthMapTexture == null)
+                grayDepthMapTexture = TextureUtility.GetRenderTexture(p_texture.width, p_texture.height, 16, RenderTextureFormat.R16);
+
+            if (imageProcessA == null)
+                imageProcessA = TextureUtility.GetRenderTexture(p_texture.width, p_texture.height, 8, RenderTextureFormat.ARGB32);
+
+            if (imageProcessB == null)
+                imageProcessB = TextureUtility.GetRenderTexture(p_texture.width, p_texture.height, 8, RenderTextureFormat.ARGB32);
+
+            if (filterTexture == null)
+                filterTexture = TextureUtility.GetRenderTexture(outputWidth, outputHeight, 8, RenderTextureFormat.ARGB32);
+
+            if (_depth2DProcessingTex == null)
+                _depth2DProcessingTex = new Texture2D(outputWidth, outputHeight, TextureFormat.RGB24, false);
+
+            if (debugTexture_a != null)
+                debugTexture_a.texture = p_texture;
+
+            if (debugTexture_b != null)
+                debugTexture_b.texture = _depth2DProcessingTex;
+        }
+
+        private void SetColorTexture(Texture p_texture)
+        {
+            float aspectRatio = p_texture.height / (float)p_texture.width;
+            int resizeSize = 64;
+            int outputWidth = resizeSize;
+            int outputHeight = Mathf.FloorToInt(aspectRatio * resizeSize);
+
+            if (_color2DProcessingTex == null)
+                _color2DProcessingTex = new Texture2D(outputWidth, outputHeight, TextureFormat.RGB24, false);
+
+            if (colorMapTexture == null)
+                colorMapTexture = TextureUtility.GetRenderTexture(outputWidth, outputHeight, 8, RenderTextureFormat.ARGB32);
+
+            if (colorTexture_canvas != null)
+                colorTexture_canvas.texture = colorMapTexture;
+
+
+            StartCoroutine(Hsinpa.Utility.UtilityFunc.DoDelayCoroutineWork(2, () => {
+                Graphics.Blit(p_texture, colorMapTexture); // Filter
+
+                AsyncGPUReadback.Request(colorMapTexture, 0, TextureFormat.RGB24, OnColTexCompleteReadback);
+
+            }));
         }
 
         private void DrawAreaHint(List<GeneralDataStructure.AreaStruct> areaStructs) {
@@ -174,23 +214,39 @@ namespace Hsinpa.Realsense {
 
                 for (int x = -radiusX; x < radiusX; x++) {
                     //Up
-                    _imgProcessingTex.SetPixel(areaStruct.x + x, areaStruct.y + radiusY, Color.blue);
+                    _depth2DProcessingTex.SetPixel(areaStruct.x + x, areaStruct.y + radiusY, Color.blue);
 
                     //Down
-                    _imgProcessingTex.SetPixel(areaStruct.x + x, areaStruct.y - radiusY, Color.blue);
+                    _depth2DProcessingTex.SetPixel(areaStruct.x + x, areaStruct.y - radiusY, Color.blue);
                 }
 
                 for (int y = -radiusY; y < radiusY; y++)
                 {
                     //Left
-                    _imgProcessingTex.SetPixel(areaStruct.x - radiusX, areaStruct.y + y, Color.blue);
+                    _depth2DProcessingTex.SetPixel(areaStruct.x - radiusX, areaStruct.y + y, Color.blue);
 
                     //Right
-                    _imgProcessingTex.SetPixel(areaStruct.x + radiusX, areaStruct.y + y, Color.blue);
+                    _depth2DProcessingTex.SetPixel(areaStruct.x + radiusX, areaStruct.y + y, Color.blue);
                 }
             }
 
-            _imgProcessingTex.Apply();
+            _depth2DProcessingTex.Apply();
+        }
+
+        private void OnColTexCompleteReadback(AsyncGPUReadbackRequest request)
+        {
+            if (request.hasError)
+            {
+                Debug.Log("GPU readback error detected.");
+                return;
+            }
+
+            if (_color2DProcessingTex == null) return;
+
+            _color2DProcessingTex.LoadRawTextureData(request.GetData<uint>());
+            _color2DProcessingTex.Apply();
+
+            _ = projectorSizeCorrector.ProcressFindProjectorSize(_color2DProcessingTex);
         }
     }
 }
