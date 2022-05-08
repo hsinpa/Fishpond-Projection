@@ -14,9 +14,9 @@ namespace Hsinpa.AI.Flocking
 
     public struct FlockColliderStruct
     {
-        public int id;
         public Vector3 position;
-        public float radius;
+        public float height;
+        public float width;
     }
 
     public struct FlockEnvStruct

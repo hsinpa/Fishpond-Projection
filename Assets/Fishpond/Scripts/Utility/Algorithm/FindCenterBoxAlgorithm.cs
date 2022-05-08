@@ -10,7 +10,7 @@ namespace Hsinpa.Utility.Algorithm
     /// </summary>
     public class FindCenterBoxAlgorithm
     {
-        private const float ErrorRange = 0.1f;
+        private const float ErrorRange = 0.3f;
         Color[] _colors;
         int _width, _height;
 
@@ -24,10 +24,12 @@ namespace Hsinpa.Utility.Algorithm
             int centerY = Mathf.RoundToInt(height * 0.5f);
             Vector3 refCol = ColorToVector(colors[ GetPixelIndex(centerX, centerY) ]);
 
-            Debug.Log("RefCol x " + refCol.x + ", y " + refCol.y +", z" + refCol.z);
+            //Debug.Log("width " + width + ", height " + height + ", centerX " + centerX + ", centerY " + centerY);
 
-            tasks[0] = Task.Run(() =>  FindEdge(centerX, centerY, new Vector2Int(0, 1), refCol)); //Top
-            tasks[1] = Task.Run(() => FindEdge(centerX, centerY, new Vector2Int(0, -1), refCol)); //Down
+            //Debug.Log("RefCol x " + refCol.x + ", y " + refCol.y +", z" + refCol.z);
+
+            tasks[0] = Task.Run(() =>  FindEdge(centerX, centerY, new Vector2Int(0, -1), refCol)); //Top
+            tasks[1] = Task.Run(() => FindEdge(centerX, centerY, new Vector2Int(0, 1), refCol)); //Down
             tasks[2] = Task.Run(() => FindEdge(centerX, centerY, new Vector2Int(-1, 0), refCol)); // Left
             tasks[3] = Task.Run(() => FindEdge(centerX, centerY, new Vector2Int(1, 0), refCol)); // Right
 
@@ -37,12 +39,12 @@ namespace Hsinpa.Utility.Algorithm
 
             Vector2Int top = await tasks[0], down = await tasks[1], left = await tasks[2], right = await tasks[3];
             areaStruct.width = right.x - left.x;
-            areaStruct.height = top.y - down.y;
+            areaStruct.height = down.y - top.y;
             areaStruct.y = Mathf.FloorToInt((areaStruct.height * 0.5f) + top.y);
             areaStruct.x = Mathf.FloorToInt((areaStruct.width * 0.5f) + left.x);
 
-            Debug.Log("Color right.x " + right.x + ", left.x " + left.x);
-            Debug.Log("Color top.y " + top.y + ", down.y " + down.y);
+            //Debug.Log("Color right.x " + right.x + ", left.x " + left.x);
+            //Debug.Log("Color top.y " + top.y + ", down.y " + down.y);
 
             return areaStruct;
         }
@@ -64,9 +66,14 @@ namespace Hsinpa.Utility.Algorithm
                     cacheColor.z = currentColor.b;
 
                     float dist = Vector3.Distance(referenceCol, cacheColor);
-                    //Debug.Log("RefCol x " + cacheColor.x + ", y " + cacheColor.y + ", z" + cacheColor.z);
 
-                    if (dist > ErrorRange)
+                    //if (direction.x == 1) {
+                    //    Debug.Log("RefCol x " + referenceCol.x + ", y " + referenceCol.y + ", z" + referenceCol.z);
+                    //    Debug.Log("cacheColor x " + cacheColor.x + ", y " + cacheColor.y + ", z" + cacheColor.z);
+                    //    Debug.Log("Dist x " + dist);
+                    //}
+
+                    if (dist > ErrorRange && !IsBlackNoise(currentColor))
                         validIndex = false;
                 } else
                 {
@@ -84,6 +91,10 @@ namespace Hsinpa.Utility.Algorithm
 
         private Vector3 ColorToVector(Color col) {
             return new Vector3(col.r, col.g, col.b);
+        }
+
+        private bool IsBlackNoise(Color currentColor) {
+            return currentColor.r <= 0.05f && currentColor.g <= 0.05f && currentColor.b <= 0.05f;
         }
 
         private bool IsWithinRange(int x , int y) {

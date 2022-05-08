@@ -12,6 +12,7 @@ namespace Hsinpa.Utility.Algorithm {
         private PixelStruct[] _pixelStructArray;
 
         private int incrementalNewIndex = 1;
+        private int _offsetX, _offsetY;
 
         private readonly Vector2Int TopLeftOffset = new Vector2Int(-1, 1);
         private readonly Vector2Int TopOffset = new Vector2Int(0, 1);
@@ -19,10 +20,12 @@ namespace Hsinpa.Utility.Algorithm {
 
         private Dictionary<int, List<PixelStruct>> pixelLookupTable = new Dictionary<int, List<PixelStruct>>();
 
-        public SegmentationAlgorithm(float threshold_area, int width, int height)
+        public SegmentationAlgorithm(float threshold_area, int width, int height, int offsetX, int offsetY)
         {
             this._threshold_area = threshold_area;
             this.SetSize(width, height);
+            this._offsetX = offsetX;
+            this._offsetY = offsetY;
         }
 
         public void SetSize(int width, int height) {
@@ -174,14 +177,15 @@ namespace Hsinpa.Utility.Algorithm {
 
                 areaStruct.width = right - left;
                 areaStruct.height = top - bottom;
-                areaStruct.x = Mathf.FloorToInt(center_x / pixelKeyPair.Value.Count);
-                areaStruct.y = Mathf.FloorToInt(center_y / pixelKeyPair.Value.Count);
+                areaStruct.x = Mathf.RoundToInt(center_x / pixelKeyPair.Value.Count) + _offsetX;
+                areaStruct.y = Mathf.RoundToInt(center_y / pixelKeyPair.Value.Count) + _offsetY;
 
-                //Debug.Log(areaStruct.id + ", left " + left + ", right " + right +", top " + top +", bottom "  + bottom);
                 //Debug.Log("Area " + areaStruct.area);
 
-                if (areaStruct.area >= area_threshold)
+                if (areaStruct.area >= area_threshold) {
+                    //Debug.Log(areaStruct.id + ", left " + left + ", right " + right + ", top " + top + ", bottom " + bottom);
                     areaStructs.Add(areaStruct);
+                }
             }
 
             return areaStructs;

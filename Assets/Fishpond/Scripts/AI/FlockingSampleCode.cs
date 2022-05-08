@@ -1,3 +1,5 @@
+using Hsinpa.Realsense;
+using Hsinpa.Utility.Algorithm;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +8,9 @@ namespace Hsinpa.AI.Flocking
 {
     public class FlockingSampleCode : MonoBehaviour
     {
+        [SerializeField]
+        private Camera targetCamera;
+
         [SerializeField]
         private FlockManager flockManager;
 
@@ -30,6 +35,11 @@ namespace Hsinpa.AI.Flocking
         [SerializeField, Range(0f, 10f)]
         private float AgendEscapeValue;
 
+        [SerializeField]
+        private RealsenseCtrl realsenseCtrl;
+
+        private SpaceTransformAlgorithm spaceTransformAlgorithm;
+
         void Start()
         {
             FlockEnvStruct flockEnvStruct = new FlockEnvStruct();
@@ -48,9 +58,40 @@ namespace Hsinpa.AI.Flocking
             Debug.Log(debugColliders.Length);
             var colliders = debugColliders.Select(x => x.FlockColliderStruct).ToList();
 
-            foreach (var c in colliders) {
-                flockManager.RegisterCollider(c);
-            }
+            flockManager.SetColliders(colliders);
+
+            realsenseCtrl.OnProjectorAreaScan += OnProjectorAreaScan;
+            realsenseCtrl.OnTargetsAreaScan += OnProjectorAreaScan;
+        }
+
+        private void OnProjectorAreaScan(GeneralDataStructure.AreaStruct areaStruct, Texture fullTex) {
+            if (spaceTransformAlgorithm != null) return;
+
+            float height = Camera.main.orthographicSize * 2.0f;
+            float width = height * Camera.main.aspect;
+
+            Debug.Log("Camera " + width + ", " + height);
+            spaceTransformAlgorithm = new SpaceTransformAlgorithm(Camera.main.transform.position, width, height, fullTex.width, fullTex.height, areaStruct);
+        }
+
+        private void OnProjectorAreaScan(List<GeneralDataStructure.AreaStruct> areaStructs, int spaceHeight, int spaceWidth)
+        {
+            if (spaceTransformAlgorithm == null) return;
+            var colliders = areaStructs.Select(area => {
+
+                Vector4 transfromArea = spaceTransformAlgorithm.ToGameWorldSpace(area, spaceHeight, spaceWidth);
+
+                return new FlockColliderStruct()
+                {
+                    position = new Vector3(transfromArea.x, 0, transfromArea.y),
+                    height = transfromArea.w,
+                    width = transfromArea.z
+                };
+
+
+            }).ToList();
+
+            flockManager.SetColliders(colliders);
         }
 
     }

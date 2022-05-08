@@ -173,7 +173,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.33911967, g: 0.8113208, b: 0.11098258, a: 1}
+  m_Color: {r: 0, g: 1, b: 0.5, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -802,7 +802,7 @@ Camera:
   near clip plane: 0.3
   far clip plane: 100
   field of view: 60
-  orthographic: 0
+  orthographic: 1
   orthographic size: 5
   m_Depth: -1
   m_CullingMask:
@@ -1242,14 +1242,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7849cf57f108a744fa86f7005c2f154c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  targetCamera: {fileID: 892133336}
   flockManager: {fileID: 1291771116}
   debugColliderHolder: {fileID: 1950217484}
   PondSize: {x: 15, y: 15}
-  SpawnCount: 40
+  SpawnCount: 100
   Sensitivity: 2
-  AgentMaxSpeed: 0.8
-  AgentMinSpeed: 0
+  AgentMaxSpeed: 1.5
+  AgentMinSpeed: 0.1
   AgendEscapeValue: 1
+  realsenseCtrl: {fileID: 1567141702}
 --- !u!114 &1291771119
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1388,7 +1390,7 @@ MonoBehaviour:
   customizeMat: {fileID: 2100000, guid: 7370935b9da19954dabb679e71fbb772, type: 2}
   areaDebugMat: {fileID: 2100000, guid: 941d35146c77b4c48aa5fe883e6688c7, type: 2}
   projectorSizeCorrector: {fileID: 1567141703}
-  debugAreaFlag: 0
+  debugAreaFlag: 1
 --- !u!114 &1567141703
 MonoBehaviour:
   m_ObjectHideFlags: 0

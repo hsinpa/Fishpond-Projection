@@ -28,7 +28,7 @@ namespace Hsinpa.Realsense
             GeneralDataStructure.AreaStruct areaStruct = await findCenterBoxAlgorithm.FindSize(colTex.GetPixels(), colTex.width, colTex.height);
             GreenShotCanvas.gameObject.SetActive(false);
 
-            Debug.Log($"x {areaStruct.x}, y {areaStruct.y}, height {areaStruct.height}, width {areaStruct.width}, area {areaStruct.area}");
+            //Debug.Log($"x {areaStruct.x}, y {areaStruct.y}, height {areaStruct.height}, width {areaStruct.width}, area {areaStruct.area}");
 
             return areaStruct;
         }

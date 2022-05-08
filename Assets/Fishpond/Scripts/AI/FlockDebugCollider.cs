@@ -9,7 +9,7 @@ namespace Hsinpa.AI.Flocking
         [SerializeField, Range(0.1f, 3f)]
         private float Radius;
 
-        public FlockColliderStruct FlockColliderStruct => new FlockColliderStruct() {position = this.transform.position, radius = Radius};
+        public FlockColliderStruct FlockColliderStruct => new FlockColliderStruct() {position = this.transform.position};
 
         private void OnDrawGizmosSelected()
         {

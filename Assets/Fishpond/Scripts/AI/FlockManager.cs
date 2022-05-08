@@ -12,6 +12,8 @@ namespace Hsinpa.AI.Flocking
         [SerializeField]
         private FlockGameObject _flockAgentPrefab;
 
+
+
         private List<FlockColliderStruct> _colliders = new List<FlockColliderStruct>();
         private List<FlockAgent> _flockAgents = new List<FlockAgent>();
         private List<FlockGameObject> _flockGameObjs = new List<FlockGameObject>();
@@ -43,22 +45,27 @@ namespace Hsinpa.AI.Flocking
             sender.Start();
         }
 
-        public void RegisterCollider(FlockColliderStruct collider) {
-            collider.id = colliderIncrementalID;
-
-            _colliders.Add(collider);
-
-            colliderIncrementalID++;
+        public void SetColliders(List<FlockColliderStruct> colliders) {
+            _colliders.Clear();
+            _colliders.AddRange(colliders);
         }
 
-        public void RemoveCollider(FlockColliderStruct collider) {
-            int l = _colliders.Count;
+        //public void RegisterCollider(FlockColliderStruct collider) {
+        //    collider.id = colliderIncrementalID;
 
-            for (int i = l - 1; i >= 0; i--) {
-                if (_colliders[i].id == collider.id)
-                    _colliders.RemoveAt(i);
-            }
-        }
+        //    _colliders.Add(collider);
+
+        //    colliderIncrementalID++;
+        //}
+
+        //public void RemoveCollider(FlockColliderStruct collider) {
+        //    int l = _colliders.Count;
+
+        //    for (int i = l - 1; i >= 0; i--) {
+        //        if (_colliders[i].id == collider.id)
+        //            _colliders.RemoveAt(i);
+        //    }
+        //}
         #endregion
 
         #region Private API
@@ -135,6 +142,17 @@ namespace Hsinpa.AI.Flocking
         {
             Gizmos.color = Color.blue;
             Gizmos.DrawWireCube(transform.position, this._pondSize3D);
+        }
+
+        private void OnDrawGizmos()
+        {
+            if (_colliders == null) return;
+            Gizmos.color = Color.green;
+
+            foreach (var collider in _colliders)
+            {
+                Gizmos.DrawWireCube(collider.position, new Vector3(collider.width, 0,collider.height));
+            }
         }
         #endregion
 

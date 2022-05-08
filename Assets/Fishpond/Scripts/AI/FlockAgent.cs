@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using Hsinpa.Utility.Algorithm;
 
 namespace Hsinpa.AI.Flocking {
     public class FlockAgent
@@ -20,6 +21,12 @@ namespace Hsinpa.AI.Flocking {
 
         private const float COLLISION_RADIUS = 0.1f;
         private const float DELTA_TIME = 0.02f;
+
+        private enum State { Normal, Flee }
+        private State _state = State.Normal;
+        private const float _fleeDuration = 2f;
+        private float _fleeTimeRecord = 0;
+        private Vector3 _lastFleeVelocity = new Vector3();
 
         private float _seed;
         System.Random _randomSystem;
@@ -50,18 +57,31 @@ namespace Hsinpa.AI.Flocking {
 
             Vector3 steering_force = new Vector3(0, 0, 0);
 
-            if (filterFlocks.Count > 0)
+            if (_state == State.Normal)
             {
-                steering_force += GetAlignmentForce(filterFlocks) * ALIGN_WEIGHT;
-                steering_force += GetCohesiveForce(filterFlocks, flockDataStruct) * COHESION_WEIGHT;
-                steering_force += (GetSeperationForce(filterFlocks, flockDataStruct) * SEPERATION_WEIGHT);
+                if (filterFlocks.Count > 0)
+                {
+                    steering_force += GetAlignmentForce(filterFlocks) * ALIGN_WEIGHT;
+                    steering_force += GetCohesiveForce(filterFlocks, flockDataStruct) * COHESION_WEIGHT;
+                    steering_force += (GetSeperationForce(filterFlocks, flockDataStruct) * SEPERATION_WEIGHT);
+                }
+
+                steering_force += GetPullCenterForce() * PULLBACK_WEIGHT;
+                steering_force += GetCollisionAvoidForce(colliders) * COLLISION_WEIGHT;
+                steering_force += GetRandomForce() * RANDOM_WEIGHT;
             }
 
-            steering_force += GetPullCenterForce() * PULLBACK_WEIGHT;
-            steering_force += GetCollisionAvoidForce(colliders) * COLLISION_WEIGHT;
-            steering_force += GetRandomForce() * RANDOM_WEIGHT;
+            if (_state == State.Flee) {
+                steering_force += _lastFleeVelocity;
+
+                if (this._fleeTimeRecord + _fleeDuration < FlockManager.TIME) {
+                    _state = State.Normal;
+                }
+            }
 
             this.flockDataStruct.acceleration = steering_force;
+
+
 
             ProcessMovement();
         }
@@ -135,7 +155,7 @@ namespace Hsinpa.AI.Flocking {
         private Vector3 GetRandomForce()
         {
             Vector3 centerOffset = (this._flockEnvStruct.waypoint - this.flockDataStruct.position);
-            float centerDist = (this._flockEnvStruct.waypoint - this.flockDataStruct.position).magnitude;
+            float centerDist = Vector3.Distance(this._flockEnvStruct.waypoint, this.flockDataStruct.position);
 
             float sampleX = (Mathf.PerlinNoise(_seed, 0)) * 2 - 1;
             float sampleY = (Mathf.PerlinNoise(0, _seed)) * 2 - 1;
@@ -148,7 +168,7 @@ namespace Hsinpa.AI.Flocking {
 
             randomForce += (centerOffset.normalized * 0.1f);
             //Debug.Log(centerDist);
-            if (centerDist < 1f) {
+            if (centerDist < 3f) {
                 ResetWayPoint();
             }
 
@@ -167,16 +187,23 @@ namespace Hsinpa.AI.Flocking {
 
                 var distance = Vector3.Distance(collider.position, expectedPosition);
 
-                if (distance < collider.radius + (COLLISION_RADIUS)) {
+                Vector3 expectColCircle = new Vector3(expectedPosition.x, expectedPosition.z, COLLISION_RADIUS);
+                Vector4 tCollideVec = new Vector4(collider.position.x, collider.position.z, collider.width, collider.height);
+
+                if ( CollisionAlgorithm.BoxCircleIntersect(tCollideVec, expectColCircle) ) {
                     force = this.flockDataStruct.position - collider.position;
-                    force /= distance;
+                    //force /= distance;
                 }
 
                 return force;
             });
 
-            if (averageForce.magnitude > 0.1f)
+            if (averageForce.magnitude > 0.1f) {
                 ResetWayPoint();
+                this._lastFleeVelocity = averageForce.normalized;
+                this._fleeTimeRecord = FlockManager.TIME;
+                this._state = State.Flee;
+            }
 
             return averageForce;
         }
@@ -215,25 +242,28 @@ namespace Hsinpa.AI.Flocking {
         }
 
         private void ProcessMovement() {
-            float decay = 0.95f;
+
+            float decay = 0.98f;
             flockDataStruct.velocity *= decay;
 
             Vector3 velocity = flockDataStruct.velocity + (flockDataStruct.acceleration * DELTA_TIME);
-
-            float t = (Mathf.PerlinNoise( _seed * 10, _seed ));
-            float speed = Mathf.Lerp(this._flockEnvStruct.min_speed, this._flockEnvStruct.max_speed, t);
+            float speed = GetSpeed();
 
             flockDataStruct.velocity = Vector3.ClampMagnitude(velocity, speed);
 
             flockDataStruct.position += flockDataStruct.velocity * DELTA_TIME;
-            
-            //Position
-            //this.transform.position = flockDataStruct.position;
-
-            //Rotation
-            //float angle = (Mathf.Atan2(flockDataStruct.velocity.z, flockDataStruct.velocity.x) * Mathf.Rad2Deg) - 90 ;
-            //this.transform.rotation = Quaternion.Euler(90, 0, angle);
         }
+
+        private float GetSpeed() {
+            float t = (Mathf.PerlinNoise(_seed * 10, _seed));
+            float speed = Mathf.Lerp(this._flockEnvStruct.min_speed, this._flockEnvStruct.max_speed, t);
+
+            if (_state == State.Flee)
+               return this._flockEnvStruct.max_speed * 2;
+
+            return speed;
+        }
+
         #endregion
 
     }

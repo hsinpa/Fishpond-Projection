@@ -4,8 +4,9 @@
 Material:
   serializedVersion: 6
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_Name: CustomSkybox
   m_Shader: {fileID: 4800000, guid: 07e17b14e6dff9944ae5388d96bed0be, type: 3}
   m_ShaderKeywords: _MAPPING_LATITUDE_LONGITUDE_LAYOUT _SUNDISK_NONE
@@ -113,7 +114,7 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _BottomColor: {r: 0, g: 0.674, b: 0.878, a: 1}
+    - _BottomColor: {r: 0.26415092, g: 0.26415092, b: 0.26415092, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _Color1: {r: 0.618404, g: 0.9585262, b: 0.97794116, a: 0}
     - _Color2: {r: 1, g: 1, b: 1, a: 0}
@@ -124,4 +125,5 @@ Material:
     - _Orig: {r: 0, g: 0, b: 0, a: 0}
     - _SkyTint: {r: 1, g: 1, b: 1, a: 1}
     - _Tint: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
-    - _TopColor: {r: 0, g: 0, b: 0, a: 1}
+    - _TopColor: {r: 0, g: 0.241, b: 1, a: 0}
+  m_BuildTextureStacks: []

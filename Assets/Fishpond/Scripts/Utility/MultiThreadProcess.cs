@@ -21,10 +21,6 @@ namespace Hsinpa.Utility
 
         private void Process()
         {
-            if (!NextProcessFlag) return;
-
-            NextProcessFlag = false;
-
             ThreadPool.QueueUserWorkItem(ThreadProcess);
         }
 
@@ -37,8 +33,6 @@ namespace Hsinpa.Utility
             }
 
             threadTasks.Clear();
-
-            NextProcessFlag = true;
         }
 
         private void Update()

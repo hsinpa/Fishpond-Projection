@@ -57,6 +57,9 @@ namespace Hsinpa.Realsense {
 
         private bool textureCopyFlag = true;
 
+        public System.Action<GeneralDataStructure.AreaStruct, Texture> OnProjectorAreaScan;
+        public System.Action<List<GeneralDataStructure.AreaStruct>, int, int> OnTargetsAreaScan;
+
         public Texture depth_texture
         {
             get
@@ -112,6 +115,9 @@ namespace Hsinpa.Realsense {
             //Graphics.Blit(imageProcessA, filterTexture, customizeMat, 1); // Erode
 
             ExecEdgeProcessing();
+
+            if (debugAreaFlag)
+                ExecProjectorContourProcessing();
         }
 
 
@@ -122,6 +128,14 @@ namespace Hsinpa.Realsense {
                 textureCopyFlag = false;
                 AsyncGPUReadback.Request(filterTexture, 0, TextureFormat.RGB24, OnTexCompleteReadback);
             }
+        }
+
+        private void ExecProjectorContourProcessing()
+        {
+            if (rawColorTexture == null || colorMapTexture == null) return;
+
+            Graphics.Blit(rawColorTexture, colorMapTexture); // Filter
+            AsyncGPUReadback.Request(colorMapTexture, 0, TextureFormat.RGB24, OnColTexCompleteReadback);
         }
 
         private void OnTexCompleteReadback(AsyncGPUReadbackRequest request)
@@ -138,10 +152,13 @@ namespace Hsinpa.Realsense {
             _depth2DProcessingTex.Apply();
 
             if (_segmentationAlgorithm != null) {
-                //var areas = _segmentationAlgorithm.FindAreaStruct(_imgProcessingTex.GetPixels());
-                
-                //if (debugAreaFlag)
-                //    DrawAreaHint(areas);
+                var areas = _segmentationAlgorithm.FindAreaStruct(_depth2DProcessingTex.GetPixels());
+
+                if (OnTargetsAreaScan != null)
+                    OnTargetsAreaScan(areas, _depth2DProcessingTex.height, _depth2DProcessingTex.width);
+
+                if (debugAreaFlag)
+                    DrawAreaHint(_depth2DProcessingTex, Color.white, areas);
             }
 
             textureCopyFlag = true;
@@ -155,7 +172,7 @@ namespace Hsinpa.Realsense {
             Debug.Log("OnTexture width " + outputWidth + ", " + outputHeight);
 
             if (_segmentationAlgorithm == null)
-                _segmentationAlgorithm = new SegmentationAlgorithm(threshold_area: 100, width: outputWidth, height: outputHeight);
+                _segmentationAlgorithm = new SegmentationAlgorithm(threshold_area: 120, width: outputWidth, height: outputHeight, -4, 4);
 
             if (grayDepthMapTexture == null)
                 grayDepthMapTexture = TextureUtility.GetRenderTexture(p_texture.width, p_texture.height, 16, RenderTextureFormat.R16);
@@ -193,18 +210,15 @@ namespace Hsinpa.Realsense {
                 colorMapTexture = TextureUtility.GetRenderTexture(outputWidth, outputHeight, 8, RenderTextureFormat.ARGB32);
 
             if (colorTexture_canvas != null)
-                colorTexture_canvas.texture = colorMapTexture;
+                colorTexture_canvas.texture = _color2DProcessingTex;
 
-
-            StartCoroutine(Hsinpa.Utility.UtilityFunc.DoDelayCoroutineWork(2, () => {
-                Graphics.Blit(p_texture, colorMapTexture); // Filter
-
-                AsyncGPUReadback.Request(colorMapTexture, 0, TextureFormat.RGB24, OnColTexCompleteReadback);
-
+            StartCoroutine(Hsinpa.Utility.UtilityFunc.DoDelayCoroutineWork(1, () =>
+            {
+                ExecProjectorContourProcessing();
             }));
         }
 
-        private void DrawAreaHint(List<GeneralDataStructure.AreaStruct> areaStructs) {
+        private void DrawAreaHint(Texture2D tex2D, Color color, List<GeneralDataStructure.AreaStruct> areaStructs) {
             //Debug.Log("Segmentation " + areaStructs.Count);
 
             foreach (GeneralDataStructure.AreaStruct areaStruct in areaStructs) {
@@ -213,27 +227,35 @@ namespace Hsinpa.Realsense {
                 int radiusY = Mathf.RoundToInt(areaStruct.height * 0.5f);
 
                 for (int x = -radiusX; x < radiusX; x++) {
+                    int constX = Mathf.Clamp(areaStruct.x + x, 0, tex2D.width -1);
+                    int upY = Mathf.Clamp(areaStruct.y + radiusY, 0, tex2D.height -1);
+                    int downY = Mathf.Clamp(areaStruct.y - radiusY, 0, tex2D.height -1);
+
                     //Up
-                    _depth2DProcessingTex.SetPixel(areaStruct.x + x, areaStruct.y + radiusY, Color.blue);
+                    tex2D.SetPixel(constX, upY, color);
 
                     //Down
-                    _depth2DProcessingTex.SetPixel(areaStruct.x + x, areaStruct.y - radiusY, Color.blue);
+                    tex2D.SetPixel(constX, downY, color);
                 }
 
                 for (int y = -radiusY; y < radiusY; y++)
                 {
+                    int constY = Mathf.Clamp(areaStruct.y + y, 0, tex2D.height - 1);
+                    int leftX = Mathf.Clamp(areaStruct.x - radiusX, 0, tex2D.width - 1);
+                    int rightX = Mathf.Clamp(areaStruct.x + radiusX, 0, tex2D.width - 1);
+
                     //Left
-                    _depth2DProcessingTex.SetPixel(areaStruct.x - radiusX, areaStruct.y + y, Color.blue);
+                    tex2D.SetPixel(leftX, constY, color);
 
                     //Right
-                    _depth2DProcessingTex.SetPixel(areaStruct.x + radiusX, areaStruct.y + y, Color.blue);
+                    tex2D.SetPixel(rightX, constY, color);
                 }
             }
 
-            _depth2DProcessingTex.Apply();
+            tex2D.Apply();
         }
 
-        private void OnColTexCompleteReadback(AsyncGPUReadbackRequest request)
+        private async void OnColTexCompleteReadback(AsyncGPUReadbackRequest request)
         {
             if (request.hasError)
             {
@@ -246,7 +268,12 @@ namespace Hsinpa.Realsense {
             _color2DProcessingTex.LoadRawTextureData(request.GetData<uint>());
             _color2DProcessingTex.Apply();
 
-            _ = projectorSizeCorrector.ProcressFindProjectorSize(_color2DProcessingTex);
+            GeneralDataStructure.AreaStruct areaStruct =  await projectorSizeCorrector.ProcressFindProjectorSize(_color2DProcessingTex);
+
+           // DrawAreaHint(_color2DProcessingTex, Color.white, new List<GeneralDataStructure.AreaStruct>() { areaStruct });
+
+            if (OnProjectorAreaScan != null)
+                OnProjectorAreaScan(areaStruct, _color2DProcessingTex);
         }
     }
 }
