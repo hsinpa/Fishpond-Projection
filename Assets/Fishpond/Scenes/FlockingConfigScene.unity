@@ -1245,7 +1245,7 @@ MonoBehaviour:
   targetCamera: {fileID: 892133336}
   flockManager: {fileID: 1291771116}
   debugColliderHolder: {fileID: 1950217484}
-  PondSize: {x: 15, y: 15}
+  PondSize: {x: 25, y: 15}
   SpawnCount: 100
   Sensitivity: 2
   AgentMaxSpeed: 1.5
