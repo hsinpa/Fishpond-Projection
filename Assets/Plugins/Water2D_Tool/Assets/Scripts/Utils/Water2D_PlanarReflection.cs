@@ -115,6 +115,8 @@ namespace Water2DTool
 
         public void RenderHelpCameras(Camera currentCam)
         {
+            if (currentCam == null) return;
+
             if (null == m_HelperCameras)
             {
                 m_HelperCameras = new Dictionary<Camera, bool>();
