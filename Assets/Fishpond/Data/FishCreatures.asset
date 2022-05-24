@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16428e7f18933d243afcec905c13e2f7, type: 3}
+  m_Name: FishCreatures
+  m_EditorClassIdentifier: 
+  flockGameObjects:
+  - {fileID: 8790631263810185597, guid: 4581d0a4907c1dd4bac3ccb5c9817167, type: 3}
+  - {fileID: 1589497369786855955, guid: f86f6cd534318d0489964b003a739f49, type: 3}
+  - {fileID: 8171921532164005490, guid: 1c863386499ca94468b5bac778d48ae5, type: 3}
+  - {fileID: 6521806894109441898, guid: 83cc998cec6d090478f0fd73b58fe9be, type: 3}
+  - {fileID: 7950605681082876384, guid: a01c6393131652845af68d4cc86035d1, type: 3}

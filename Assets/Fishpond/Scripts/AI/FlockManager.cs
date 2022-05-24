@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using Hsinpa.Utility;
+using Hsinpa.Ultimate.Scrollview;
 
 namespace Hsinpa.AI.Flocking
 {
@@ -10,9 +11,7 @@ namespace Hsinpa.AI.Flocking
     public class FlockManager : MonoBehaviour
     {
         [SerializeField]
-        private FlockGameObject _flockAgentPrefab;
-
-
+        private FishCreaturePoolSRP _fishCreaturePoolSRP;
 
         private List<FlockColliderStruct> _colliders = new List<FlockColliderStruct>();
         private List<FlockAgent> _flockAgents = new List<FlockAgent>();
@@ -103,7 +102,9 @@ namespace Hsinpa.AI.Flocking
         }
 
         private FlockGameObject CreateFlockAgent(Vector3 position) {
-            var flockObject = GameObject.Instantiate<FlockGameObject>(_flockAgentPrefab, position, Quaternion.identity, this.transform);
+            var randomSpawnObj = _fishCreaturePoolSRP.GetRandomFlockObject();
+
+            var flockObject = GameObject.Instantiate<FlockGameObject>(randomSpawnObj, position, Quaternion.identity, this.transform);
 
             this.flockIncrementalID++;
 
