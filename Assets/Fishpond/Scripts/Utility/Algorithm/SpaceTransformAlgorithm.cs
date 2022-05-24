@@ -21,6 +21,7 @@ namespace Hsinpa.Utility.Algorithm
             this._areaWidth = areaWidth;
             this._areaHeight = areaHeight;
 
+            Debug.Log($"_worldScreenWidth {_worldScreenWidth}, _worldScreenHeight {_worldScreenHeight}");
             Debug.Log($"_areaWidth {_areaWidth}, _areaHeight {_areaHeight}");
 
             this._targetArea = targetArea;
@@ -57,11 +58,11 @@ namespace Hsinpa.Utility.Algorithm
             this.pjtXposRatio = this._targetArea.x / (float)_areaWidth;
             this.pjtYPosRatio = this._targetArea.y / (float)_areaHeight;
 
-            float pjtTopResidualRatio = this.pjtYPosRatio - (heightRatio * 0.5f);
-            float pjtBtnResidualRatio = 1 - (this.pjtYPosRatio + (heightRatio * 0.5f));
+            float pjtTopResidualRatio = this.pjtYPosRatio - (this.pjtYPosRatio - (heightRatio * 0.5f));
+            float pjtBtnResidualRatio = (this.pjtYPosRatio + (heightRatio * 0.5f)) - this.pjtYPosRatio;
 
-            float pjtRightResidualRatio = 1 - (pjtXposRatio + (widthRatio * 0.5f));
-            float pjtLeftResidualRatio = this.pjtXposRatio - (widthRatio * 0.5f);
+            float pjtRightResidualRatio = (pjtXposRatio + (widthRatio * 0.5f)) - pjtXposRatio;
+            float pjtLeftResidualRatio = this.pjtXposRatio - (this.pjtXposRatio - (widthRatio * 0.5f));
 
             this._worldWidth = this._worldScreenWidth / widthRatio;
             this._worldHeight = this._worldScreenHeight / heightRatio;

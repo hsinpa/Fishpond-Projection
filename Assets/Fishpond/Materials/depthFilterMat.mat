@@ -85,6 +85,7 @@ Material:
     - _Cutoff: 0.5
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
+    - _Dilate: 0.01
     - _DstBlend: 0
     - _EnvironmentReflections: 1
     - _Erode: 2

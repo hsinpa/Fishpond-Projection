@@ -10,6 +10,7 @@ Shader "Hsinpa/DepthmapFilter"
         _Rotation("Rotation", Range(0.0 , 3.14)) = 0
         _KernelSize("Kernel Size (Performance heavy)", Int) = 1
         _Erode("Erode", Range(0.0 , 10)) = 0
+        _Dilate("Dilate", Range(0.0 , 1)) = 0.01
     }
     SubShader
     {
@@ -115,6 +116,54 @@ Shader "Hsinpa/DepthmapFilter"
             }
         ENDCG
         }
+
+
+        //Dilation
+        Pass
+    {
+        CGPROGRAM
+        #pragma vertex vert_img
+        #pragma fragment frag
+        #pragma target 3.0
+
+        #include "UnityCG.cginc"
+
+        sampler2D _MainTex;
+        float2 _MainTex_TexelSize;
+        float _Dilate;
+
+        float Dilation(sampler2D tex, float2 uv) {
+
+            float4 sum = tex2D(tex, (uv + float2(0.0,  0.0) * _MainTex_TexelSize));
+
+                float2 _min = float2(0,0);
+                float2 _max = float2(1,1);
+
+                //get the color of 8 neighbour pixel
+                fixed4 U = tex2D(_MainTex,clamp(uv + float2(0, _Dilate),_min,_max));
+                fixed4 UR = tex2D(_MainTex,clamp(uv + float2(_Dilate, _Dilate),_min,_max));
+                fixed4 R = tex2D(_MainTex,clamp(uv + float2(_Dilate,0),_min,_max));
+                fixed4 DR = tex2D(_MainTex,clamp(uv + float2(_Dilate,-_Dilate),_min,_max));
+                fixed4 D = tex2D(_MainTex,clamp(uv + float2(0,-_Dilate),_min,_max));
+                fixed4 DL = tex2D(_MainTex,clamp(uv + float2(-_Dilate,-_Dilate),_min,_max));
+                fixed4 L = tex2D(_MainTex,clamp(uv + float2(-_Dilate,0),_min,_max));
+                fixed4 UL = tex2D(_MainTex,clamp(uv + float2(-_Dilate, _Dilate),_min,_max));
+
+                //add all colors up to one final color
+                fixed4 finalColor = U + UR + R + DR + D + DL + L + UL;
+
+
+            return float4(finalColor.xyz, 1.0);
+        }
+
+        float4 frag(v2f_img IN) : COLOR {
+            float s = Dilation(_MainTex, IN.uv);
+
+            return float4(s, s, s, 1);
+        }
+    ENDCG
+
+    }
 
 
         Pass

@@ -109,15 +109,14 @@ namespace Hsinpa.Realsense {
             Graphics.Blit(rawDepthMapTexture, grayDepthMapTexture, realsenseMat);
 
             Graphics.Blit(grayDepthMapTexture, imageProcessA, customizeMat, 0); // Guassian
-            Graphics.Blit(imageProcessA, imageProcessB, customizeMat, 2); // Filter
-            Graphics.Blit(imageProcessB, filterTexture, customizeMat, 1); // Erode
-
-            //Graphics.Blit(imageProcessA, filterTexture, customizeMat, 1); // Erode
+            Graphics.Blit(imageProcessA, imageProcessB, customizeMat, 3); // Filter
+            Graphics.Blit(imageProcessB, imageProcessA, customizeMat, 1); // Erode
+            Graphics.Blit(imageProcessA, filterTexture, customizeMat, 2); // Dilate
 
             ExecEdgeProcessing();
 
-            if (debugAreaFlag)
-                ExecProjectorContourProcessing();
+            //if (debugAreaFlag)
+            //    ExecProjectorContourProcessing();
         }
 
 
@@ -172,7 +171,7 @@ namespace Hsinpa.Realsense {
             Debug.Log("OnTexture width " + outputWidth + ", " + outputHeight);
 
             if (_segmentationAlgorithm == null)
-                _segmentationAlgorithm = new SegmentationAlgorithm(threshold_area: 120, width: outputWidth, height: outputHeight, -4, 4);
+                _segmentationAlgorithm = new SegmentationAlgorithm(threshold_area: 120, width: outputWidth, height: outputHeight, offsetX: -3, offsetY: 2);
 
             if (grayDepthMapTexture == null)
                 grayDepthMapTexture = TextureUtility.GetRenderTexture(p_texture.width, p_texture.height, 16, RenderTextureFormat.R16);
@@ -270,7 +269,7 @@ namespace Hsinpa.Realsense {
 
             GeneralDataStructure.AreaStruct areaStruct =  await projectorSizeCorrector.ProcressFindProjectorSize(_color2DProcessingTex);
 
-           // DrawAreaHint(_color2DProcessingTex, Color.white, new List<GeneralDataStructure.AreaStruct>() { areaStruct });
+            DrawAreaHint(_color2DProcessingTex, Color.white, new List<GeneralDataStructure.AreaStruct>() { areaStruct });
 
             if (OnProjectorAreaScan != null)
                 OnProjectorAreaScan(areaStruct, _color2DProcessingTex);
