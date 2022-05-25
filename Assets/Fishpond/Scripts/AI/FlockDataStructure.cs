@@ -10,6 +10,7 @@ namespace Hsinpa.AI.Flocking
         public Vector3 position;
         public Vector3 velocity;
         public Vector3 acceleration;
+        public float speedRatio; // between 0 and 1
     }
 
     public struct FlockColliderStruct

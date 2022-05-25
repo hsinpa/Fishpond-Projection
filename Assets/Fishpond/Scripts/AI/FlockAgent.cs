@@ -247,21 +247,26 @@ namespace Hsinpa.AI.Flocking {
             flockDataStruct.velocity *= decay;
 
             Vector3 velocity = flockDataStruct.velocity + (flockDataStruct.acceleration * DELTA_TIME);
-            float speed = GetSpeed();
+            var speedTuple = GetSpeed();
 
-            flockDataStruct.velocity = Vector3.ClampMagnitude(velocity, speed);
+            flockDataStruct.velocity = Vector3.ClampMagnitude(velocity, speedTuple.Item1);
+            flockDataStruct.speedRatio = speedTuple.Item2;
 
             flockDataStruct.position += flockDataStruct.velocity * DELTA_TIME;
         }
 
-        private float GetSpeed() {
+        /// <summary>
+        /// Speed, SpeedRatio
+        /// </summary>
+        /// <returns></returns>
+        private (float, float) GetSpeed() {
             float t = (Mathf.PerlinNoise(_seed * 10, _seed));
             float speed = Mathf.Lerp(this._flockEnvStruct.min_speed, this._flockEnvStruct.max_speed, t);
 
             if (_state == State.Flee)
-               return this._flockEnvStruct.max_speed * 2;
+               return (this._flockEnvStruct.max_speed * 2, 1);
 
-            return speed;
+            return (speed, t);
         }
 
         #endregion
