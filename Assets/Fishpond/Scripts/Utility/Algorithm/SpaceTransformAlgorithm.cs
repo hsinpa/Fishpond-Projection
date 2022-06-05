@@ -29,18 +29,18 @@ namespace Hsinpa.Utility.Algorithm
             CalculateRelativeRelationship();
         }
 
-        public Vector4 ToGameWorldSpace(GeneralDataStructure.AreaStruct _targetArea, int spaceHeight, int spaceWidth) {
-            float xRatio = _targetArea.x / (float)spaceWidth;
-            float yRatio = _targetArea.y / (float)spaceHeight;
-            float heightRatio = _targetArea.height / (float)spaceHeight;
-            float widthRatio = _targetArea.width / (float)spaceWidth;
+        public Vector4 ToGameWorldSpace(GeneralDataStructure.AreaStruct targetArea, int spaceHeight, int spaceWidth) {
+            float xRatio = targetArea.x / (float)spaceWidth;
+            float yRatio = targetArea.y / (float)spaceHeight;
+            float heightRatio = targetArea.height / (float)spaceHeight;
+            float widthRatio = targetArea.width / (float)spaceWidth;
 
             float heightTopRatio = yRatio + (heightRatio * 0.5f);
             float heightBottomRatio = yRatio - (heightRatio * 0.5f);
             float widthLeftRatio = xRatio - (widthRatio * 0.5f);
             float widthRightRatio = xRatio + (widthRatio * 0.5f);
 
-            float y = Mathf.Lerp(worldSpaceCorner.y, worldSpaceCorner.x, yRatio);
+            float y = Mathf.Lerp(worldSpaceCorner.y, worldSpaceCorner.x, yRatio + (heightRatio * 0.5f));
             float x = Mathf.Lerp(worldSpaceCorner.w, worldSpaceCorner.z, xRatio);
             float height = _worldHeight * heightRatio;
             float width = _worldWidth * widthRatio;
@@ -58,21 +58,32 @@ namespace Hsinpa.Utility.Algorithm
             this.pjtXposRatio = this._targetArea.x / (float)_areaWidth;
             this.pjtYPosRatio = this._targetArea.y / (float)_areaHeight;
 
-            float pjtTopResidualRatio = this.pjtYPosRatio - (this.pjtYPosRatio - (heightRatio * 0.5f));
-            float pjtBtnResidualRatio = (this.pjtYPosRatio + (heightRatio * 0.5f)) - this.pjtYPosRatio;
+            float pjtTopResidualRatio = this.pjtYPosRatio - (heightRatio * 0.5f);
+            float pjtBtnResidualRatio = this.pjtYPosRatio + (heightRatio * 0.5f);
 
-            float pjtRightResidualRatio = (pjtXposRatio + (widthRatio * 0.5f)) - pjtXposRatio;
-            float pjtLeftResidualRatio = this.pjtXposRatio - (this.pjtXposRatio - (widthRatio * 0.5f));
+            float pjtRightResidualRatio = pjtXposRatio + (widthRatio * 0.5f);
+            float pjtLeftResidualRatio = this.pjtXposRatio - (widthRatio * 0.5f);
 
             this._worldWidth = this._worldScreenWidth / widthRatio;
             this._worldHeight = this._worldScreenHeight / heightRatio;
 
-            float worldTop = (this.worldCamPos.z + (this._worldScreenHeight*0.5f)) + (this._worldHeight * pjtTopResidualRatio);
-            float worldBottom = (this.worldCamPos.z - (this._worldScreenHeight * 0.5f)) - (this._worldHeight * pjtBtnResidualRatio);
-            float worldRight = (this.worldCamPos.x + (this._worldScreenWidth * 0.5f)) + (this._worldWidth * pjtRightResidualRatio);
-            float worldLeft = (this.worldCamPos.x - (this._worldScreenWidth * 0.5f)) - (this._worldWidth * pjtLeftResidualRatio);
+            float worldTop = (this._worldHeight * 0.5f) - (this._worldHeight * pjtTopResidualRatio);
+            float worldBottom = (this._worldHeight * 0.5f ) - (this._worldHeight * pjtBtnResidualRatio);
+            float worldRight = ( -(this._worldWidth * 0.5f)) + (this._worldWidth * pjtRightResidualRatio);
+            float worldLeft = ( -(this._worldWidth * 0.5f)) + (this._worldWidth * pjtLeftResidualRatio);
+
+
+            worldTop += this._worldHeight * pjtTopResidualRatio;
+            worldBottom -= this._worldHeight * (1- pjtBtnResidualRatio);
+
+            //float worldTop = this._worldHeight * 0.5f;
+            //float worldBottom = this._worldHeight * -0.5f;
+            //float worldRight = this._worldWidth * 0.5f;
+            //float worldLeft = this._worldWidth * -0.5f;
 
             Debug.Log($"widthRatio {widthRatio}, heightRatio {heightRatio}");
+            Debug.Log($"pjtXposRatio {this.pjtXposRatio}, pjtYPosRatio {this.pjtYPosRatio}");
+
             Debug.Log($"pjtTopResidualRatio {pjtTopResidualRatio}, pjtBtnResidualRatio {pjtBtnResidualRatio}, pjtRightResidualRatio {pjtRightResidualRatio}, pjtLeftResidualRatio {pjtLeftResidualRatio}");
             Debug.Log($"WorldFullWidth {this._worldWidth}, WorldFullHeight {this._worldHeight}, World top {worldTop}, Bottom {worldBottom}, Right {worldRight}, left {worldLeft}");
 
