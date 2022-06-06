@@ -28,6 +28,8 @@ namespace Hsinpa.AI.Flocking {
         private float _fleeTimeRecord = 0;
         private Vector3 _lastFleeVelocity = new Vector3();
 
+
+        public bool isCollideInThisFrame = false;
         private float _seed;
         System.Random _randomSystem;
 
@@ -51,6 +53,7 @@ namespace Hsinpa.AI.Flocking {
         
         public void OnUpdate(List<FlockAgent> flockAgents, List<FlockColliderStruct> colliders)
         {
+            this.isCollideInThisFrame = false;
             int index_offset = 10;
             var filterFlocks = FilterSenseRange(flockAgents, this.flockDataStruct);
             this._seed = (index_offset * this.flockDataStruct.id + FlockManager.TIME) * DELTA_TIME;
@@ -69,6 +72,10 @@ namespace Hsinpa.AI.Flocking {
                 steering_force += GetPullCenterForce() * PULLBACK_WEIGHT;
                 steering_force += GetCollisionAvoidForce(colliders) * COLLISION_WEIGHT;
                 steering_force += GetRandomForce() * RANDOM_WEIGHT;
+
+
+                if (_state == State.Flee)
+                    this.isCollideInThisFrame = true;
             }
 
             if (_state == State.Flee) {
@@ -80,8 +87,6 @@ namespace Hsinpa.AI.Flocking {
             }
 
             this.flockDataStruct.acceleration = steering_force;
-
-
 
             ProcessMovement();
         }
@@ -246,11 +251,13 @@ namespace Hsinpa.AI.Flocking {
             float decay = 0.98f;
             flockDataStruct.velocity *= decay;
 
+            Vector3 previousVelocity = flockDataStruct.velocity.normalized;
             Vector3 velocity = flockDataStruct.velocity + (flockDataStruct.acceleration * DELTA_TIME);
             var speedTuple = GetSpeed();
-
+            float velocityChange = (1 - Vector3.Dot(previousVelocity, velocity.normalized)) * 5;
+            
             flockDataStruct.velocity = Vector3.ClampMagnitude(velocity, speedTuple.Item1);
-            flockDataStruct.speedRatio = speedTuple.Item2;
+            flockDataStruct.speedRatio = velocityChange + (speedTuple.Item2 * 0.6f);
 
             flockDataStruct.position += flockDataStruct.velocity * DELTA_TIME;
         }

@@ -4,6 +4,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Water2DTool;
+
 namespace Hsinpa.AI.Flocking
 {
     public class FlockingSampleCode : MonoBehaviour
@@ -35,8 +37,14 @@ namespace Hsinpa.AI.Flocking
         [SerializeField, Range(0f, 10f)]
         private float AgendEscapeValue;
 
+        [SerializeField, Range(0, 10)]
+        private int MaxRipplePerFrame = 5;
+
         [SerializeField]
         private RealsenseCtrl realsenseCtrl;
+
+        [SerializeField]
+        private Water2D_Ripple water2D_Ripple;
 
         private SpaceTransformAlgorithm spaceTransformAlgorithm;
 
@@ -55,10 +63,10 @@ namespace Hsinpa.AI.Flocking
             flockManager.Init(PondSize, SpawnCount, flockEnvStruct);
 
             FlockDebugCollider[] debugColliders = debugColliderHolder.GetComponentsInChildren<FlockDebugCollider>();
-            Debug.Log(debugColliders.Length);
             var colliders = debugColliders.Select(x => x.FlockColliderStruct).ToList();
 
             flockManager.SetColliders(colliders);
+            flockManager.OnCollideEvent += OnCollideRipple;
 
             realsenseCtrl.OnProjectorAreaScan += OnProjectorAreaScan;
             realsenseCtrl.OnTargetsAreaScan += OnProjectorAreaScan;
@@ -94,5 +102,14 @@ namespace Hsinpa.AI.Flocking
             flockManager.SetColliders(colliders);
         }
 
+        private void OnCollideRipple(List<Vector3> collidePoints) {
+            int cLens = collidePoints.Count;
+
+            for (int i = 0; i < cLens; i++)
+            {
+                if (i >= MaxRipplePerFrame) return;
+                water2D_Ripple.AddRippleAtPosition(collidePoints[i], 2, 2);
+            }
+        }
     }
 }

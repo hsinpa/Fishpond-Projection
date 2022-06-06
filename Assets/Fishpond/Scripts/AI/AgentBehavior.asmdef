@@ -2,7 +2,8 @@
     "name": "AgentBehavior",
     "rootNamespace": "",
     "references": [
-        "GUID:503a8dec8edeb5b458d071c3809a5432"
+        "GUID:503a8dec8edeb5b458d071c3809a5432",
+        "GUID:f2b8e309bda075249b2a96c2c944fb44"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

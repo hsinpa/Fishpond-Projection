@@ -26,11 +26,12 @@ namespace Hsinpa.AI.Flocking
 
         private int flockIncrementalID = 0;
         private int colliderIncrementalID = 0;
-
+        public System.Action<List<Vector3>> OnCollideEvent;
+        private List<Vector3> _cacheCollideList = new List<Vector3>();
         public static float TIME;
 
         #region Public API
-        public void Init(Vector2 pondSize, int spawnCount, FlockEnvStruct flockEnvStruct ) {
+        public void Init(Vector2 pondSize, int spawnCount, FlockEnvStruct flockEnvStruct) {
             this.multiThreadProcess = gameObject.GetComponent<MultiThreadProcess>();
 
             this._pondSize = pondSize;
@@ -123,9 +124,13 @@ namespace Hsinpa.AI.Flocking
 
             for (int i = 0; i < flockCount; i++)
             {
-                _flockGameObjs[i].UpdateTransform();
+                _flockGameObjs[i].UpdateTransform();                
             }
 
+            if (_cacheCollideList.Count > 0 && OnCollideEvent != null)
+                OnCollideEvent(_cacheCollideList);
+
+            _cacheCollideList.Clear();
             multiThreadProcess.Enqueue(ProcessCalculation);
         }
 
@@ -136,6 +141,9 @@ namespace Hsinpa.AI.Flocking
             for (int i = 0; i < flockCount; i++)
             {
                 _flockAgents[i].OnUpdate(_flockAgents, _colliders);
+
+                if (_flockAgents[i].isCollideInThisFrame)
+                    _cacheCollideList.Add(_flockAgents[i].flockDataStruct.position);
             }
         }
 

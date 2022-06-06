@@ -41,9 +41,9 @@ namespace Hsinpa.Utility.Algorithm
             float widthRightRatio = xRatio + (widthRatio * 0.5f);
 
             float y = Mathf.Lerp(worldSpaceCorner.y, worldSpaceCorner.x, yRatio + (heightRatio * 0.5f));
-            float x = Mathf.Lerp(worldSpaceCorner.w, worldSpaceCorner.z, xRatio);
-            float height = _worldHeight * heightRatio;
-            float width = _worldWidth * widthRatio;
+            float x = Mathf.Lerp(worldSpaceCorner.w, worldSpaceCorner.z, xRatio) + (widthRatio * 0.5f);
+            float height = _worldHeight * (heightRatio * 0.5f);
+            float width = _worldWidth * (widthRatio * 0.75f);
 
             //Debug.Log($"ToGameWorldSpace x {x}, WorldFullHeight {y}, height {height}, width {width}");
             //Debug.Log($"heightTopRatio {heightTopRatio}, heightBottomRatio {heightBottomRatio}, widthLeftRatio {widthLeftRatio}, widthRightRatio {widthRightRatio}");
@@ -69,12 +69,14 @@ namespace Hsinpa.Utility.Algorithm
 
             float worldTop = (this._worldHeight * 0.5f) - (this._worldHeight * pjtTopResidualRatio);
             float worldBottom = (this._worldHeight * 0.5f ) - (this._worldHeight * pjtBtnResidualRatio);
-            float worldRight = ( -(this._worldWidth * 0.5f)) + (this._worldWidth * pjtRightResidualRatio);
-            float worldLeft = ( -(this._worldWidth * 0.5f)) + (this._worldWidth * pjtLeftResidualRatio);
-
+            float worldRight = (this._worldWidth * 0.5f) - (this._worldWidth * pjtLeftResidualRatio);
+            float worldLeft = (this._worldWidth * 0.5f) - (this._worldWidth * pjtRightResidualRatio);
 
             worldTop += this._worldHeight * pjtTopResidualRatio;
             worldBottom -= this._worldHeight * (1- pjtBtnResidualRatio);
+
+            worldRight += this._worldWidth * (1 - pjtRightResidualRatio);
+            worldLeft -= this._worldWidth * (pjtLeftResidualRatio);
 
             //float worldTop = this._worldHeight * 0.5f;
             //float worldBottom = this._worldHeight * -0.5f;

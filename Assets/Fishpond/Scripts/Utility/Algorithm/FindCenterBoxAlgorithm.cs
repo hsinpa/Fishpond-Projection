@@ -10,7 +10,7 @@ namespace Hsinpa.Utility.Algorithm
     /// </summary>
     public class FindCenterBoxAlgorithm
     {
-        private const float ErrorRange = 0.3f;
+        private const float ErrorRange = 0.5f;
         Color[] _colors;
         int _width, _height;
 

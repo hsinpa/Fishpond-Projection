@@ -95,3 +95,4 @@ Material:
     - _ShallowWaterColor: {r: 0.7764706, g: 0.84313726, b: 0.9764706, a: 1}
     - _SpecularColor: {r: 0.2205882, g: 0.2205882, b: 0.2205882, a: 1}
     - _WorldLightDir: {r: -0.07, g: 0.15, b: -1, a: -0.32}
+  m_BuildTextureStacks: []
