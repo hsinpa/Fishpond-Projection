@@ -40,10 +40,11 @@ namespace Hsinpa.Utility.Algorithm
             float widthLeftRatio = xRatio - (widthRatio * 0.5f);
             float widthRightRatio = xRatio + (widthRatio * 0.5f);
 
-            float y = Mathf.Lerp(worldSpaceCorner.y, worldSpaceCorner.x, yRatio + (heightRatio * 0.5f));
-            float x = Mathf.Lerp(worldSpaceCorner.w, worldSpaceCorner.z, xRatio) + (widthRatio * 0.5f);
-            float height = _worldHeight * (heightRatio * 0.5f);
-            float width = _worldWidth * (widthRatio * 0.75f);
+            float height = _worldHeight * (heightRatio);
+            float width = _worldWidth * (widthRatio);
+
+            float y = Mathf.Lerp(worldSpaceCorner.y, worldSpaceCorner.x, yRatio) + (height * 0.25f);
+            float x = Mathf.Lerp(worldSpaceCorner.w, worldSpaceCorner.z, xRatio);
 
             //Debug.Log($"ToGameWorldSpace x {x}, WorldFullHeight {y}, height {height}, width {width}");
             //Debug.Log($"heightTopRatio {heightTopRatio}, heightBottomRatio {heightBottomRatio}, widthLeftRatio {widthLeftRatio}, widthRightRatio {widthRightRatio}");
