@@ -10,6 +10,9 @@ namespace Hsinpa.AI.Flocking
 
         Animation movementAnim;
 
+        [SerializeField]
+        private float center_anim_time;
+
         public void SetUp(FlockAgent flockAgent) {
             this.flockAgent = flockAgent;
             this.movementAnim = this.GetComponentInChildren<Animation>();
@@ -24,8 +27,12 @@ namespace Hsinpa.AI.Flocking
             this.transform.rotation = Quaternion.LookRotation(flockAgent.flockDataStruct.velocity, Vector3.up);
 
             if (this.movementAnim != null) {
-                foreach (AnimationState state in this.movementAnim)
-                    state.speed = flockAgent.flockDataStruct.speedRatio;
+                foreach (AnimationState state in this.movementAnim) {
+                    state.time = center_anim_time + (Mathf.Sin(Time.time * flockAgent.flockDataStruct.speedRatio));
+                    //state.speed = flockAgent.flockDataStruct.speedRatio;
+
+                }
+
             }
 
         }
