@@ -348,7 +348,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &447282421
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1009,7 +1009,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1421940970626846, guid: d2790e271f1a64347bb2ede5601b1e23, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1509775526359626, guid: d2790e271f1a64347bb2ede5601b1e23, type: 3}
       propertyPath: m_IsActive
@@ -1173,7 +1173,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1194601629348710, guid: 88101aaad380d2446b34d5110becbc5f, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4669229571324224, guid: 88101aaad380d2446b34d5110becbc5f, type: 3}
       propertyPath: m_RootOrder
@@ -1302,7 +1302,7 @@ MonoBehaviour:
   flockManager: {fileID: 1291771116}
   debugColliderHolder: {fileID: 1950217484}
   PondSize: {x: 16, y: 10}
-  SpawnCount: 1
+  SpawnCount: 65
   Sensitivity: 2
   AgentMaxSpeed: 1.5
   AgentMinSpeed: 0.1
@@ -1920,7 +1920,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1567141701
 Transform:
   m_ObjectHideFlags: 0
@@ -1972,6 +1972,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   WaitTime: 1
   GreenShotCanvas: {fileID: 55432552}
+  FindProjectorSizeComplete: 0
 --- !u!43 &1688636191
 Mesh:
   m_ObjectHideFlags: 0

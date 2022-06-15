@@ -17,6 +17,8 @@ namespace Hsinpa.Realsense
 
         FindCenterBoxAlgorithm findCenterBoxAlgorithm;
 
+        public bool FindProjectorSizeComplete = false;
+
         public void Start()
         {
             findCenterBoxAlgorithm = new FindCenterBoxAlgorithm();
@@ -25,12 +27,18 @@ namespace Hsinpa.Realsense
 
         public async Task<GeneralDataStructure.AreaStruct> ProcressFindProjectorSize(Texture2D colTex) {
             //await Task.Delay(System.TimeSpan.FromSeconds(WaitTime));
-            GeneralDataStructure.AreaStruct areaStruct = await findCenterBoxAlgorithm.FindSize(colTex.GetPixels(), colTex.width, colTex.height);
-            GreenShotCanvas.gameObject.SetActive(false);
+            GeneralDataStructure.AreaStruct areaStruct = await findCenterBoxAlgorithm.FindSize(colTex.GetPixels(), GreenShotCanvas.color, colTex.width, colTex.height);
 
-            //Debug.Log($"x {areaStruct.x}, y {areaStruct.y}, height {areaStruct.height}, width {areaStruct.width}, area {areaStruct.area}");
+            //GreenShotCanvas.gameObject.SetActive(false);
+
+            Debug.Log($"x {areaStruct.x}, y {areaStruct.y}, height {areaStruct.height}, width {areaStruct.width}, area {areaStruct.area}");
 
             return areaStruct;
+        }
+
+        public void SetCorrectorState(bool complete) {
+            FindProjectorSizeComplete = complete;
+            GreenShotCanvas.gameObject.SetActive(!complete);
         }
     }
 }

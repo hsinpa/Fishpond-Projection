@@ -10,33 +10,35 @@ namespace Hsinpa.Utility.Algorithm
     /// </summary>
     public class FindCenterBoxAlgorithm
     {
-        private const float ErrorRange = 0.5f;
+        private const float ErrorRange = 0.6f;
         Color[] _colors;
         int _width, _height;
 
-        public async Task<GeneralDataStructure.AreaStruct> FindSize(Color[] colors, int width, int height) {
+        public async Task<GeneralDataStructure.AreaStruct> FindSize(Color[] colors, Color refCol, int width, int height) {
+            GeneralDataStructure.AreaStruct areaStruct = new GeneralDataStructure.AreaStruct();
+
             _colors = colors;
             _width = width;
             _height = height;
-
+            
             Task<Vector2Int>[] tasks = new Task<Vector2Int>[4];
             int centerX = Mathf.RoundToInt(width * 0.5f);
             int centerY = Mathf.RoundToInt(height * 0.5f);
-            Vector3 refCol = ColorToVector(colors[ GetPixelIndex(centerX, centerY) ]);
+            Vector3 cenerColVec = ColorToVector(colors[GetPixelIndex(centerX, centerY)]);
+            Vector3 refColVec = ColorToVector(refCol);
+
+            if (Vector3.Distance(cenerColVec, refColVec) > ErrorRange) return areaStruct;
 
             //Debug.Log("width " + width + ", height " + height + ", centerX " + centerX + ", centerY " + centerY);
 
             //Debug.Log("RefCol x " + refCol.x + ", y " + refCol.y +", z" + refCol.z);
 
-            tasks[0] = Task.Run(() =>  FindEdge(centerX, centerY, new Vector2Int(0, -1), refCol)); //Top
-            tasks[1] = Task.Run(() => FindEdge(centerX, centerY, new Vector2Int(0, 1), refCol)); //Down
-            tasks[2] = Task.Run(() => FindEdge(centerX, centerY, new Vector2Int(-1, 0), refCol)); // Left
-            tasks[3] = Task.Run(() => FindEdge(centerX, centerY, new Vector2Int(1, 0), refCol)); // Right
+            tasks[0] = Task.Run(() =>  FindEdge(centerX, centerY, new Vector2Int(0, -1), cenerColVec)); //Top
+            tasks[1] = Task.Run(() => FindEdge(centerX, centerY, new Vector2Int(0, 1), cenerColVec)); //Down
+            tasks[2] = Task.Run(() => FindEdge(centerX, centerY, new Vector2Int(-1, 0), cenerColVec)); // Left
+            tasks[3] = Task.Run(() => FindEdge(centerX, centerY, new Vector2Int(1, 0), cenerColVec)); // Right
 
             await Task.WhenAll(tasks);
-
-            GeneralDataStructure.AreaStruct areaStruct = new GeneralDataStructure.AreaStruct();
-
             Vector2Int top = await tasks[0], down = await tasks[1], left = await tasks[2], right = await tasks[3];
             areaStruct.width = right.x - left.x;
             areaStruct.height = down.y - top.y;

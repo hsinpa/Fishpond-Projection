@@ -115,7 +115,7 @@ namespace Hsinpa.Realsense {
 
             ExecEdgeProcessing();
 
-            //if (debugAreaFlag)
+            //if (!projectorSizeCorrector.FindProjectorSizeComplete)
             //    ExecProjectorContourProcessing();
         }
 
@@ -271,8 +271,12 @@ namespace Hsinpa.Realsense {
 
             DrawAreaHint(_color2DProcessingTex, Color.white, new List<GeneralDataStructure.AreaStruct>() { areaStruct });
 
-            if (OnProjectorAreaScan != null)
-                OnProjectorAreaScan(areaStruct, _color2DProcessingTex);
+            int areaThreshold = 40;
+            //if (areaStruct.area > areaThreshold) {
+                projectorSizeCorrector.SetCorrectorState(areaStruct.area > areaThreshold);
+                if (OnProjectorAreaScan != null)
+                    OnProjectorAreaScan(areaStruct, _color2DProcessingTex);
+            //}
         }
     }
 }
