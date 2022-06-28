@@ -14,13 +14,11 @@ namespace Hsinpa.Utility.Algorithm {
         private int incrementalNewIndex = 1;
         private int _offsetX, _offsetY;
 
-        private readonly Vector2Int TopRightOffset = new Vector2Int(1, 1);
-        private readonly Vector2Int TopLeftOffset = new Vector2Int(-1, 1);
-        private readonly Vector2Int TopOffset = new Vector2Int(0, 1);
+        private readonly Vector2Int TopRightOffset = new Vector2Int(1, -1);
+        private readonly Vector2Int TopLeftOffset = new Vector2Int(-1, -1);
+        private readonly Vector2Int TopOffset = new Vector2Int(0, -1);
         private readonly Vector2Int LeftOffset = new Vector2Int(-1, 0);
-        private readonly Vector2Int TopLeft2Offset = new Vector2Int(-2, 2);
-        private readonly Vector2Int Top2Offset = new Vector2Int(0, 2);
-        private readonly Vector2Int Left2Offset = new Vector2Int(-2, 0);
+
 
         private Dictionary<int, List<PixelStruct>> pixelLookupTable = new Dictionary<int, List<PixelStruct>>();
 
@@ -73,10 +71,7 @@ namespace Hsinpa.Utility.Algorithm {
             PixelStruct top_pixel = FindPixelByPos(pos_x, pos_y, TopOffset),
                         left_pixel = FindPixelByPos(pos_x, pos_y, LeftOffset),
                         topleft_pixel = FindPixelByPos(pos_x, pos_y, TopLeftOffset),
-                        topright_pixel = FindPixelByPos(pos_x, pos_y, TopRightOffset),
-                        top2_pixel = FindPixelByPos(pos_x, pos_y, Top2Offset),
-                        left2_pixel = FindPixelByPos(pos_x, pos_y, Left2Offset),
-                        topleft2_pixel = FindPixelByPos(pos_x, pos_y, TopLeft2Offset);
+                        topright_pixel = FindPixelByPos(pos_x, pos_y, TopRightOffset);
 
             _pixelStructArray[index].index = index;
             _pixelStructArray[index].x = pos_x;
@@ -85,10 +80,9 @@ namespace Hsinpa.Utility.Algorithm {
 
             MoveToSegment(_pixelStructArray[index], incrementalNewIndex);
 
-            if ((top_pixel.unique_id > 0 || left_pixel.unique_id > 0 || topleft_pixel.unique_id > 0 || topright_pixel.unique_id > 0 ||
-                top2_pixel.unique_id > 0 || left2_pixel.unique_id > 0 || topleft2_pixel.unique_id > 0))
+            if ((top_pixel.unique_id > 0 || left_pixel.unique_id > 0 || topleft_pixel.unique_id > 0 || topright_pixel.unique_id > 0))
             {
-                ProcessCrossRelatePixel(top_pixel, left_pixel, topleft_pixel, top2_pixel, left2_pixel, topleft2_pixel, topright_pixel, _pixelStructArray[index]);
+                ProcessCrossRelatePixel(top_pixel, left_pixel, topleft_pixel, topright_pixel, _pixelStructArray[index]);
                 return;
             }
             incrementalNewIndex++;
@@ -186,8 +180,8 @@ namespace Hsinpa.Utility.Algorithm {
 
                 areaStruct.width = right - left;
                 areaStruct.height = top - bottom;
-                areaStruct.x = Mathf.RoundToInt(center_x / pixelKeyPair.Value.Count) + _offsetX;
-                areaStruct.y = Mathf.RoundToInt(center_y / pixelKeyPair.Value.Count) + _offsetY;
+                areaStruct.x = Mathf.CeilToInt( Mathf.Lerp(left, right, 0.5f) ) ;
+                areaStruct.y = Mathf.CeilToInt(Mathf.Lerp(bottom, top, 0.5f)) ;
 
                 //Debug.Log("Area " + areaStruct.area);
 

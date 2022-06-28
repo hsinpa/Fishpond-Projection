@@ -38,12 +38,13 @@ namespace Hsinpa.Utility.Algorithm
             float height = _worldHeight * (heightRatio);
             float width = _worldWidth * (widthRatio);
 
-            float y = Mathf.Lerp(worldSpaceCorner.y, worldSpaceCorner.x, yRatio);
+            float yoffset = yRatio + (heightRatio * 0.1f);
+
+            float y = Mathf.Lerp(worldSpaceCorner.x, worldSpaceCorner.y, yoffset);
             float x = Mathf.Lerp(worldSpaceCorner.w, worldSpaceCorner.z, xRatio);
 
             //Debug.Log($"ToGameWorldSpace x {x}, WorldFullHeight {y}, height {height}, width {width}");
-            //Debug.Log($"heightTopRatio {heightTopRatio}, heightBottomRatio {heightBottomRatio}, widthLeftRatio {widthLeftRatio}, widthRightRatio {widthRightRatio}");
-            //Debug.Log($"xRatio {xRatio}, yRatio {yRatio}, heightRatio {heightRatio}, widthRatio {widthRatio}");
+            //Debug.Log($"xRatio {xRatio}, yRatio {yRatio}, ToGameWorldSpace x {x}, WorldFullHeight {y}");
 
             return new Vector4(x, y, width, height);
         }
@@ -68,16 +69,16 @@ namespace Hsinpa.Utility.Algorithm
             float greenscreenRight =  (this._worldWidth * (pjtXposRatio + horizontalResidualRatio)) ;
             float greenscreenLeft =  (this._worldWidth * (pjtXposRatio - horizontalResidualRatio));
 
-            float worldTop = greenscreenTop + (this._worldHeight * (1 - pjtYPosRatio + verticalResidualRatio)) + worldCenterYOffset;
+            float worldTop = this._worldHeight + worldCenterYOffset;
             float worldBottom = worldCenterYOffset;
-            float worldRight = greenscreenRight + (this._worldWidth * (1 - pjtXposRatio + horizontalResidualRatio)) + worldCenterXOffset;
+            float worldRight = this._worldWidth + worldCenterXOffset;
             float worldLeft = worldCenterXOffset;
 
             Debug.Log($"widthRatio {widthRatio}, heightRatio {heightRatio}");
             Debug.Log($"pjtXposRatio {this.pjtXposRatio}, pjtYPosRatio {this.pjtYPosRatio}");
             Debug.Log($"WorldFullWidth {this._worldWidth}, WorldFullHeight {this._worldHeight}, World top {worldTop}, Bottom {worldBottom}, Right {worldRight}, left {worldLeft}");
 
-            worldSpaceCorner = new Vector4(worldTop, worldBottom, worldLeft, worldRight);
+            worldSpaceCorner = new Vector4(-worldTop, - worldBottom, -worldRight , - worldLeft);
         }
 
 

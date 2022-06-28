@@ -10,7 +10,7 @@ namespace Hsinpa.Utility.Algorithm
     /// </summary>
     public class FindCenterBoxAlgorithm
     {
-        private const float ErrorRange = 0.6f;
+        private const float ErrorRange = 0.4f;
         Color[] _colors;
         int _width, _height;
 
@@ -74,6 +74,11 @@ namespace Hsinpa.Utility.Algorithm
                     //    Debug.Log("cacheColor x " + cacheColor.x + ", y " + cacheColor.y + ", z" + cacheColor.z);
                     //    Debug.Log("Dist x " + dist);
                     //}
+
+                    if (IsBlackNoise(currentColor)) {
+                        validIndex = false;
+                        continue;
+                    }
 
                     if (dist > ErrorRange && !IsBlackNoise(currentColor))
                         validIndex = false;
