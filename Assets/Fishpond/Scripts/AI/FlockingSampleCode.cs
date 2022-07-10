@@ -107,8 +107,9 @@ namespace Hsinpa.AI.Flocking
 
             for (int i = 0; i < cLens; i++)
             {
+                Vector3 collidePosition = collidePoints[i];
                 if (i >= MaxRipplePerFrame) return;
-                water2D_Ripple.AddRippleAtPosition(collidePoints[i], 2, 2);
+                water2D_Ripple.AddRippleAtPosition(collidePosition, 0.3f, 0.3f);
             }
         }
     }

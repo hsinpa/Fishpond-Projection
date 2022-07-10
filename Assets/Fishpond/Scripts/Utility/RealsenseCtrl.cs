@@ -10,13 +10,10 @@ namespace Hsinpa.Realsense {
     public class RealsenseCtrl : MonoBehaviour
     {
         [SerializeField]
-        private UnityEngine.UI.RawImage debugTexture_a;
+        private UnityEngine.UI.RawImage debugTexture_rawimage;
 
         [SerializeField]
-        private UnityEngine.UI.RawImage debugTexture_b;
-
-        [SerializeField]
-        private UnityEngine.UI.RawImage colorTexture_canvas;
+        private UnityEngine.UI.RawImage colorTexture_rawimage;
 
         [SerializeField]
         private MultiThreadProcess multiThreadProcess;
@@ -56,6 +53,7 @@ namespace Hsinpa.Realsense {
         private SegmentationAlgorithm _segmentationAlgorithm;
 
         private bool textureCopyFlag = true;
+        private bool copySegementationFlag = false;
 
         public System.Action<GeneralDataStructure.AreaStruct, Texture> OnProjectorAreaScan;
         public System.Action<List<GeneralDataStructure.AreaStruct>, int, int> OnTargetsAreaScan;
@@ -102,6 +100,12 @@ namespace Hsinpa.Realsense {
             }
         }
 
+        private void Start()
+        {
+            debugTexture_rawimage.gameObject.SetActive(debugAreaFlag);
+            colorTexture_rawimage.gameObject.SetActive(debugAreaFlag);
+        }
+
         private void Update()
         {
             if (filterTexture == null || grayDepthMapTexture == null) return;
@@ -131,8 +135,8 @@ namespace Hsinpa.Realsense {
 
         private void ExecProjectorContourProcessing()
         {
-            if (rawColorTexture == null || colorMapTexture == null) return;
-
+            if (rawColorTexture == null || colorMapTexture == null || copySegementationFlag) return;
+            copySegementationFlag = true;
             Graphics.Blit(rawColorTexture, colorMapTexture); // Filter
             AsyncGPUReadback.Request(colorMapTexture, 0, TextureFormat.RGB24, OnColTexCompleteReadback);
         }
@@ -188,11 +192,8 @@ namespace Hsinpa.Realsense {
             if (_depth2DProcessingTex == null)
                 _depth2DProcessingTex = new Texture2D(outputWidth, outputHeight, TextureFormat.RGB24, false);
 
-            if (debugTexture_a != null)
-                debugTexture_a.texture = p_texture;
-
-            if (debugTexture_b != null)
-                debugTexture_b.texture = _depth2DProcessingTex;
+            if (debugTexture_rawimage != null)
+                debugTexture_rawimage.texture = _depth2DProcessingTex;
         }
 
         private void SetColorTexture(Texture p_texture)
@@ -208,8 +209,8 @@ namespace Hsinpa.Realsense {
             if (colorMapTexture == null)
                 colorMapTexture = TextureUtility.GetRenderTexture(outputWidth, outputHeight, 8, RenderTextureFormat.ARGB32);
 
-            if (colorTexture_canvas != null)
-                colorTexture_canvas.texture = _color2DProcessingTex;
+            if (colorTexture_rawimage != null)
+                colorTexture_rawimage.texture = _color2DProcessingTex;
 
             StartCoroutine(Hsinpa.Utility.UtilityFunc.DoDelayCoroutineWork(1, () =>
             {
@@ -267,16 +268,16 @@ namespace Hsinpa.Realsense {
             _color2DProcessingTex.LoadRawTextureData(request.GetData<uint>());
             _color2DProcessingTex.Apply();
 
+            copySegementationFlag = false;
+
             GeneralDataStructure.AreaStruct areaStruct =  await projectorSizeCorrector.ProcressFindProjectorSize(_color2DProcessingTex);
 
             DrawAreaHint(_color2DProcessingTex, Color.white, new List<GeneralDataStructure.AreaStruct>() { areaStruct });
 
-            int areaThreshold = 40;
-            //if (areaStruct.area > areaThreshold) {
-                projectorSizeCorrector.SetCorrectorState(areaStruct.area > areaThreshold);
-                if (OnProjectorAreaScan != null)
-                    OnProjectorAreaScan(areaStruct, _color2DProcessingTex);
-            //}
+            int areaThreshold = 30;
+            projectorSizeCorrector.SetCorrectorState(areaStruct.area > areaThreshold);
+            if (OnProjectorAreaScan != null)
+                OnProjectorAreaScan(areaStruct, _color2DProcessingTex);
         }
     }
 }

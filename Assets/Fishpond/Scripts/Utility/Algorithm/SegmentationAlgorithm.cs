@@ -159,11 +159,8 @@ namespace Hsinpa.Utility.Algorithm {
 
                 var firstPixel = pixelKeyPair.Value[0];
                 int top = firstPixel.y, bottom = firstPixel.y, left = firstPixel.x, right = firstPixel.x;
-                float center_x = 0, center_y = 0;
 
                 foreach (PixelStruct pixelStruct in pixelKeyPair.Value) {
-                    center_x += pixelStruct.x;
-                    center_y += pixelStruct.y;
 
                     if (pixelStruct.x <= left)
                         left = pixelStruct.x;

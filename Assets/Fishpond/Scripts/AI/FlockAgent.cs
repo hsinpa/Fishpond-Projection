@@ -16,7 +16,7 @@ namespace Hsinpa.AI.Flocking {
         private const float SEPERATION_WEIGHT = 3.5f;
         private const float PULLBACK_WEIGHT = 0.2f;
         private const float COHESION_WEIGHT = 2.5f;
-        private const float COLLISION_WEIGHT = 100;
+        private const float COLLISION_WEIGHT = 5;
         private const float RANDOM_WEIGHT = 0.5f;
 
         private const float COLLISION_RADIUS = 0.1f;
@@ -27,7 +27,6 @@ namespace Hsinpa.AI.Flocking {
         private const float _fleeDuration = 2f;
         private float _fleeTimeRecord = 0;
         private Vector3 _lastFleeVelocity = new Vector3();
-
 
         public bool isCollideInThisFrame = false;
         private float _seed;
@@ -60,6 +59,16 @@ namespace Hsinpa.AI.Flocking {
 
             Vector3 steering_force = new Vector3(0, 0, 0);
 
+            if (_state == State.Flee)
+            {
+                steering_force += _lastFleeVelocity;
+
+                if (this._fleeTimeRecord + _fleeDuration < FlockManager.TIME)
+                {
+                    _state = State.Normal;
+                }
+            }
+
             if (_state == State.Normal)
             {
                 if (filterFlocks.Count > 0)
@@ -73,17 +82,8 @@ namespace Hsinpa.AI.Flocking {
                 steering_force += GetCollisionAvoidForce(colliders) * COLLISION_WEIGHT;
                 steering_force += GetRandomForce() * RANDOM_WEIGHT;
 
-
                 if (_state == State.Flee)
                     this.isCollideInThisFrame = true;
-            }
-
-            if (_state == State.Flee) {
-                steering_force += _lastFleeVelocity;
-
-                if (this._fleeTimeRecord + _fleeDuration < FlockManager.TIME) {
-                    _state = State.Normal;
-                }
             }
 
             this.flockDataStruct.acceleration = steering_force;
@@ -247,9 +247,8 @@ namespace Hsinpa.AI.Flocking {
         }
 
         private void ProcessMovement() {
-
             float decay = 0.98f;
-            flockDataStruct.velocity *= decay;
+            flockDataStruct.velocity *= decay; // Decay
 
             Vector3 previousVelocity = flockDataStruct.velocity.normalized;
             Vector3 velocity = flockDataStruct.velocity + (flockDataStruct.acceleration * DELTA_TIME);
